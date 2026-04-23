@@ -1,0 +1,128 @@
+<?php
+require_once '../includes/admin_header.php';
+require_once '../includes/admin_sidebar.php';
+
+$message = "";
+
+// Handle Delete
+if (isset($_GET['delete'])) {
+    $id = (int)$_GET['delete'];
+    
+    // Cegah hapus diri sendiri
+    if($id == $_SESSION['user_id']) {
+        $message = "<div class='alert alert-danger'>Anda tidak bisa menghapus akun Anda sendiri!</div>";
+    } else {
+        if($conn->query("DELETE FROM users WHERE id=$id")) {
+            $message = "<div class='alert alert-success'>Akun berhasil dihapus.</div>";
+        }
+    }
+}
+
+// Handle Update Role & Password
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['id'])) {
+    $id = (int)$_POST['id'];
+    $role = $conn->real_escape_string($_POST['role']);
+    $new_password = $_POST['new_password'];
+    
+    if($new_password != "") {
+        $hashed = password_hash($new_password, PASSWORD_DEFAULT);
+        $sql = "UPDATE users SET role='$role', password='$hashed' WHERE id=$id";
+    } else {
+        $sql = "UPDATE users SET role='$role' WHERE id=$id";
+    }
+    
+    if($conn->query($sql)) {
+        $message = "<div class='alert alert-success'>Data akun berhasil diperbarui.</div>";
+    }
+}
+
+// Edit Mode
+$edit_mode = false;
+$edit_data = ['id' => '', 'nama' => '', 'email' => '', 'role' => 'pengunjung'];
+if (isset($_GET['edit'])) {
+    $id = (int)$_GET['edit'];
+    $res = $conn->query("SELECT id, nama, email, role FROM users WHERE id=$id");
+    if ($res->num_rows > 0) {
+        $edit_mode = true;
+        $edit_data = $res->fetch_assoc();
+    }
+}
+?>
+
+<div style="margin-bottom: 30px;">
+    <h2>Manajemen Akun</h2>
+    <p style="color: var(--text-muted);">Kelola data anggota dan hak akses admin.</p>
+</div>
+
+<?= $message ?>
+
+<?php if($edit_mode): ?>
+<div style="background: white; padding: 25px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); margin-bottom: 30px;">
+    <h3 style="margin-bottom: 20px;">Ubah Akun: <?= htmlspecialchars($edit_data['nama']) ?></h3>
+    <form action="user.php" method="POST">
+        <input type="hidden" name="id" value="<?= $edit_data['id'] ?>">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
+            <div>
+                <label>Email</label>
+                <input type="text" value="<?= $edit_data['email'] ?>" disabled class="form-control" style="background: #f8fafc;">
+            </div>
+            <div>
+                <label>Peran (Role)</label>
+                <select name="role" class="form-control">
+                    <option value="pengunjung" <?= $edit_data['role'] == 'pengunjung' ? 'selected' : '' ?>>Pengunjung (Member)</option>
+                    <option value="admin" <?= $edit_data['role'] == 'admin' ? 'selected' : '' ?>>Administrator</option>
+                </select>
+            </div>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label>Ganti Password (Kosongkan jika tidak ingin ganti)</label>
+            <input type="password" name="new_password" class="form-control" placeholder="Masukkan password baru...">
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button type="submit" class="btn-primary">Simpan Perubahan</button>
+            <a href="user.php" class="btn-secondary">Batal</a>
+        </div>
+    </form>
+</div>
+<?php endif; ?>
+
+<div style="background: white; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); overflow: hidden;">
+    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead style="background: var(--bg-subtle); border-bottom: 2px solid var(--border-color);">
+            <tr>
+                <th style="padding: 15px 20px;">Nama</th>
+                <th style="padding: 15px 20px;">Email</th>
+                <th style="padding: 15px 20px;">Wijk</th>
+                <th style="padding: 15px 20px; text-align: center;">SIDI</th>
+                <th style="padding: 15px 20px;">Peran</th>
+                <th style="padding: 15px 20px;">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            $result = $conn->query("SELECT * FROM users ORDER BY role ASC, nama ASC");
+            while($row = $result->fetch_assoc()):
+            ?>
+            <tr style="border-bottom: 1px solid var(--border-color);">
+                <td style="padding: 15px 20px; font-weight: 500;"><?= htmlspecialchars($row['nama']) ?></td>
+                <td style="padding: 15px 20px; color: var(--text-muted);"><?= htmlspecialchars($row['email']) ?></td>
+                <td style="padding: 15px 20px; text-align: center; color: var(--text-muted);"><?= htmlspecialchars($row['wijk']) ?></td>
+                <td style="padding: 15px 20px; text-align: center; color: var(--text-muted);"><?= htmlspecialchars($row['angkatan_sidi']) ?></td>
+                <td style="padding: 15px 20px;">
+                    <span class="badge" style="background: <?= ($row['role'] == 'admin' ? '#dcfce7' : '#f1f5f9') ?>; color: <?= ($row['role'] == 'admin' ? '#15803d' : '#475569') ?>;">
+                        <?= strtoupper($row['role']) ?>
+                    </span>
+                </td>
+                <td style="padding: 15px 20px;">
+                    <a href="user.php?edit=<?= $row['id'] ?>" class="text-primary" style="margin-right: 15px;" title="Edit Akun"><i class="fa-solid fa-user-gear"></i></a>
+                    <?php if($row['id'] != $_SESSION['user_id']): ?>
+                        <a href="user.php?delete=<?= $row['id'] ?>" class="text-danger" onclick="return confirm('Hapus akun ini secara permanen?')" title="Hapus Akun"><i class="fa-solid fa-user-minus"></i></a>
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <?php endwhile; ?>
+        </tbody>
+    </table>
+</div>
+
+<?php require_once '../includes/admin_footer.php'; ?>
