@@ -1,17 +1,19 @@
 <?php
-session_start();
+require_once dirname(__FILE__) . '/../includes/auth_middleware.php';
 require '../config/database.php';
 
 $error = "";
 $success = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    verify_csrf_token($_POST['csrf_token'] ?? '');
     $nama = $conn->real_escape_string($_POST['nama']);
     $tempat_lahir = $conn->real_escape_string($_POST['tempat_lahir']);
     $tanggal_lahir = $conn->real_escape_string($_POST['tanggal_lahir']);
     $alamat = $conn->real_escape_string($_POST['alamat']);
     $wijk = $conn->real_escape_string($_POST['wijk']);
     $angkatan_sidi = $conn->real_escape_string($_POST['angkatan_sidi']);
+    $whatsapp = $conn->real_escape_string($_POST['whatsapp']);
     $email = $conn->real_escape_string($_POST['email']);
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
@@ -29,8 +31,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $role = "pengunjung";
 
-            $sql = "INSERT INTO users (nama, tempat_lahir, tanggal_lahir, alamat, wijk, angkatan_sidi, email, password, role) 
-                    VALUES ('$nama', '$tempat_lahir', '$tanggal_lahir', '$alamat', '$wijk', '$angkatan_sidi', '$email', '$hashed_password', '$role')";
+            $sql = "INSERT INTO users (nama, tempat_lahir, tanggal_lahir, alamat, wijk, angkatan_sidi, whatsapp, email, password, role) 
+                    VALUES ('$nama', '$tempat_lahir', '$tanggal_lahir', '$alamat', '$wijk', '$angkatan_sidi', '$whatsapp', '$email', '$hashed_password', '$role')";
 
             if ($conn->query($sql) === TRUE) {
                 // Set flash message session
@@ -76,6 +78,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php endif; ?>
         
         <form action="" method="POST">
+            <input type="hidden" name="csrf_token" value="<?= get_csrf_token() ?>">
             <div class="form-group">
                 <label style="display: block; margin-bottom: 8px; font-weight: 500;">Nama Lengkap</label>
                 <input type="text" name="nama" class="form-control" required value="<?= isset($_POST['nama']) ? htmlspecialchars($_POST['nama']) : '' ?>">
@@ -108,20 +111,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
             </div>
 
-            <div class="form-group">
-                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Email</label>
-                <input type="email" name="email" class="form-control" required value="<?= isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '' ?>">
-            </div>
-
             <div class="grid-2-form">
                 <div class="form-group">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Password</label>
-                    <input type="password" name="password" class="form-control" required minlength="6">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Email</label>
+                    <input type="email" name="email" class="form-control" required value="<?= isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '' ?>">
                 </div>
                 <div class="form-group">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Ulangi Password</label>
-                    <input type="password" name="confirm_password" class="form-control" required minlength="6">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Nomor WhatsApp</label>
+                    <input type="text" name="whatsapp" class="form-control" placeholder="Contoh: 08123456789" required value="<?= isset($_POST['whatsapp']) ? htmlspecialchars($_POST['whatsapp']) : '' ?>">
                 </div>
+            </div>
+
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Password</label>
+                <input type="password" name="password" class="form-control" required minlength="6">
+            </div>
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Ulangi Password</label>
+                <input type="password" name="confirm_password" class="form-control" required minlength="6">
             </div>
 
             <button type="submit" class="btn-primary" style="width: 100%; border-radius: var(--radius-sm); margin-top: 10px; padding: 15px;">Daftar Sekarang</button>

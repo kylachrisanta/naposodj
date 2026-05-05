@@ -40,6 +40,11 @@
                 <i class="fa-solid fa-user-shield"></i> Kelola Akun
             </a>
         </li>
+        <li>
+            <a href="visi_misi.php" class="<?= ($current_page == 'visi_misi.php') ? 'active' : '' ?>">
+                <i class="fa-solid fa-lightbulb"></i> Kelola Visi & Misi
+            </a>
+        </li>
     </ul>
 </aside>
 

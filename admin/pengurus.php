@@ -26,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $jabatan = $conn->real_escape_string($_POST['jabatan']);
     $deskripsi = $conn->real_escape_string($_POST['deskripsi']);
     $kategori = $conn->real_escape_string($_POST['kategori']);
+    $divisi = $conn->real_escape_string($_POST['divisi']);
     $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
     
     $foto = "";
@@ -49,25 +50,42 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if($uploadOk) {
         if ($id > 0) {
-            // Edit
+            // Edit Pengurus
             if($foto != "") {
                 $old_res = $conn->query("SELECT foto FROM pengurus WHERE id=$id");
                 $old_row = $old_res->fetch_assoc();
                 if($old_row['foto'] != '' && file_exists($upload_dir . $old_row['foto'])) {
                     unlink($upload_dir . $old_row['foto']);
                 }
-                $sql = "UPDATE pengurus SET nama='$nama', jabatan='$jabatan', deskripsi='$deskripsi', foto='$foto', kategori='$kategori' WHERE id=$id";
+                $sql = "UPDATE pengurus SET nama='$nama', jabatan='$jabatan', deskripsi='$deskripsi', foto='$foto', kategori='$kategori', divisi='$divisi' WHERE id=$id";
             } else {
-                $sql = "UPDATE pengurus SET nama='$nama', jabatan='$jabatan', deskripsi='$deskripsi', kategori='$kategori' WHERE id=$id";
+                $sql = "UPDATE pengurus SET nama='$nama', jabatan='$jabatan', deskripsi='$deskripsi', kategori='$kategori', divisi='$divisi' WHERE id=$id";
             }
             if($conn->query($sql)) {
                 $message = "<div class='alert alert-success'><i class='fa-solid fa-circle-check'></i> Data pengurus berhasil diperbarui.</div>";
             }
         } else {
-            // Add
-            $sql = "INSERT INTO pengurus (nama, jabatan, deskripsi, foto, kategori) VALUES ('$nama', '$jabatan', '$deskripsi', '$foto', '$kategori')";
+            // Add Pengurus
+            $sql = "INSERT INTO pengurus (nama, jabatan, deskripsi, foto, kategori, divisi) VALUES ('$nama', '$jabatan', '$deskripsi', '$foto', '$kategori', '$divisi')";
             if($conn->query($sql)) {
                 $message = "<div class='alert alert-success'><i class='fa-solid fa-circle-check'></i> Data pengurus berhasil ditambahkan.</div>";
+            }
+        }
+
+        // Handle Program Kerja Upload (Only if Category is Divisi and fields are filled)
+        if ($kategori == 'Divisi' && isset($_FILES['proker_foto']) && $_FILES['proker_foto']['error'] == 0 && !empty($_POST['proker_judul'])) {
+            $proker_judul = $conn->real_escape_string($_POST['proker_judul']);
+            $proker_upload_dir = '../assets/img/sorotan/';
+            $p_ext = strtolower(pathinfo($_FILES["proker_foto"]["name"], PATHINFO_EXTENSION));
+            $p_foto = time() . '_proker_' . rand(100,999) . '.' . $p_ext;
+            
+            if(move_uploaded_file($_FILES["proker_foto"]["tmp_name"], $proker_upload_dir . $p_foto)) {
+                $tahun = date('Y');
+                $tanggal = date('Y-m-d');
+                $sql_proker = "INSERT INTO sorotan (judul, deskripsi, tahun, tanggal_kegiatan, tipe_media, file_media, divisi) 
+                               VALUES ('$proker_judul', 'Program Kerja dari Divisi $divisi', $tahun, '$tanggal', 'foto', '$p_foto', '$divisi')";
+                $conn->query($sql_proker);
+                $message .= "<div class='alert alert-success'><i class='fa-solid fa-image'></i> Foto program kerja juga berhasil diunggah.</div>";
             }
         }
     }
@@ -75,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 // Check Edit Mode
 $edit_mode = false;
-$edit_data = ['id' => '', 'nama' => '', 'jabatan' => '', 'deskripsi' => '', 'kategori' => 'BPI', 'foto' => ''];
+$edit_data = ['id' => '', 'nama' => '', 'jabatan' => '', 'deskripsi' => '', 'kategori' => 'BPI', 'foto' => '', 'divisi' => ''];
 if (isset($_GET['edit'])) {
     $id = (int)$_GET['edit'];
     $res = $conn->query("SELECT * FROM pengurus WHERE id=$id");
@@ -110,13 +128,23 @@ if (isset($_GET['edit'])) {
             </div>
         </div>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 15px;">
             <div>
                 <label>Kategori</label>
-                <select name="kategori" class="form-control">
+                <select name="kategori" class="form-control" onchange="toggleDivisiField(this.value)">
                     <option value="Pendeta" <?= $edit_data['kategori'] == 'Pendeta' ? 'selected' : '' ?>>Pendeta</option>
                     <option value="BPI" <?= $edit_data['kategori'] == 'BPI' ? 'selected' : '' ?>>Badan Pengurus Inti (BPI)</option>
                     <option value="Divisi" <?= $edit_data['kategori'] == 'Divisi' ? 'selected' : '' ?>>Divisi / Program Kerja</option>
+                </select>
+            </div>
+            <div id="divisi-field" style="display: <?= $edit_data['kategori'] == 'Divisi' ? 'block' : 'none' ?>;">
+                <label>Nama Divisi</label>
+                <select name="divisi" class="form-control">
+                    <option value="">-- Pilih Divisi --</option>
+                    <option value="Rohani" <?= $edit_data['divisi'] == 'Rohani' ? 'selected' : '' ?>>Rohani</option>
+                    <option value="Padus & Musik" <?= $edit_data['divisi'] == 'Padus & Musik' ? 'selected' : '' ?>>Padus & Musik</option>
+                    <option value="Humas" <?= $edit_data['divisi'] == 'Humas' ? 'selected' : '' ?>>Humas</option>
+                    <option value="Olahraga & Seni" <?= $edit_data['divisi'] == 'Olahraga & Seni' ? 'selected' : '' ?>>Olahraga & Seni</option>
                 </select>
             </div>
             <div>
@@ -128,6 +156,22 @@ if (isset($_GET['edit'])) {
         <div style="margin-bottom: 20px;">
             <label>Deskripsi Singkat / Visi</label>
             <textarea name="deskripsi" rows="3" class="form-control" placeholder="Tuliskan deskripsi singkat atau kutipan..."><?= htmlspecialchars($edit_data['deskripsi']) ?></textarea>
+        </div>
+
+        <!-- Program Kerja Section (Hidden by default, shown for Divisi) -->
+        <div id="proker-section" style="display: <?= $edit_data['kategori'] == 'Divisi' ? 'block' : 'none' ?>; background: var(--bg-subtle); padding: 20px; border-radius: var(--radius-sm); border: 1px dashed var(--primary); margin-bottom: 20px;">
+            <h4 style="margin-bottom: 15px; color: var(--primary);"><i class="fa-solid fa-plus-circle"></i> Tambah Dokumentasi Program Kerja</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <label>Judul Program Kerja</label>
+                    <input type="text" name="proker_judul" class="form-control" placeholder="Contoh: Retret Pemuda 2024">
+                </div>
+                <div>
+                    <label>Foto Dokumentasi</label>
+                    <input type="file" name="proker_foto" class="form-control">
+                </div>
+            </div>
+            <small style="color: var(--text-muted); display: block; margin-top: 10px;">Foto ini akan muncul di galeri program kerja divisi pada halaman publik.</small>
         </div>
         
         <div style="display: flex; gap: 10px;">
@@ -173,6 +217,9 @@ if (isset($_GET['edit'])) {
                     <span class="badge" style="background: <?= ($row['kategori'] == 'Pendeta' ? '#fef3c7' : ($row['kategori'] == 'BPI' ? '#dbeafe' : '#f1f5f9')) ?>; color: <?= ($row['kategori'] == 'Pendeta' ? '#92400e' : ($row['kategori'] == 'BPI' ? '#1e40af' : '#475569')) ?>;">
                         <?= $row['kategori'] ?>
                     </span>
+                    <?php if($row['kategori'] == 'Divisi'): ?>
+                        <div style="font-size: 0.75rem; margin-top: 5px; color: var(--primary); font-weight: 600;"><?= $row['divisi'] ?></div>
+                    <?php endif; ?>
                 </td>
                 <td style="padding: 15px 20px; color: var(--text-muted); font-size: 0.85rem;">
                     <?= mb_strimwidth(htmlspecialchars($row['deskripsi']), 0, 40, "...") ?>
@@ -191,5 +238,13 @@ if (isset($_GET['edit'])) {
         </tbody>
     </table>
 </div>
+
+<script>
+function toggleDivisiField(val) {
+    const isDivisi = (val === 'Divisi');
+    document.getElementById('divisi-field').style.display = isDivisi ? 'block' : 'none';
+    document.getElementById('proker-section').style.display = isDivisi ? 'block' : 'none';
+}
+</script>
 
 <?php require_once '../includes/admin_footer.php'; ?>

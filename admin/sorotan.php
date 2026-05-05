@@ -26,7 +26,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $judul = $conn->real_escape_string($_POST['judul']);
     $deskripsi = $conn->real_escape_string($_POST['deskripsi']);
     $tahun = (int)$_POST['tahun'];
+    $tanggal_kegiatan = $conn->real_escape_string($_POST['tanggal_kegiatan']);
     $tipe_media = $conn->real_escape_string($_POST['tipe_media']);
+    $divisi = $conn->real_escape_string($_POST['divisi']);
     $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
     
     $file_media = "";
@@ -68,14 +70,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $old_file = $old_res->fetch_assoc()['file_media'];
                 if(file_exists($upload_dir . $old_file) && is_file($upload_dir . $old_file)) unlink($upload_dir . $old_file);
                 
-                $sql = "UPDATE sorotan SET judul='$judul', deskripsi='$deskripsi', tahun=$tahun, tipe_media='$tipe_media', file_media='$file_media' WHERE id=$id";
+                $sql = "UPDATE sorotan SET judul='$judul', deskripsi='$deskripsi', tahun=$tahun, tanggal_kegiatan='$tanggal_kegiatan', tipe_media='$tipe_media', file_media='$file_media', divisi='$divisi' WHERE id=$id";
             } else {
-                $sql = "UPDATE sorotan SET judul='$judul', deskripsi='$deskripsi', tahun=$tahun, tipe_media='$tipe_media' WHERE id=$id";
+                $sql = "UPDATE sorotan SET judul='$judul', deskripsi='$deskripsi', tahun=$tahun, tanggal_kegiatan='$tanggal_kegiatan', tipe_media='$tipe_media', divisi='$divisi' WHERE id=$id";
             }
             if($conn->query($sql)) $message = "<div style='color: #15803d; background: #dcfce7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #86efac;'><i class='fa-solid fa-circle-check'></i> Sorotan berhasil diperbarui.</div>";
         } else {
             // Add
-            $sql = "INSERT INTO sorotan (judul, deskripsi, tahun, tipe_media, file_media) VALUES ('$judul', '$deskripsi', $tahun, '$tipe_media', '$file_media')";
+            $sql = "INSERT INTO sorotan (judul, deskripsi, tahun, tanggal_kegiatan, tipe_media, file_media, divisi) VALUES ('$judul', '$deskripsi', $tahun, '$tanggal_kegiatan', '$tipe_media', '$file_media', '$divisi')";
             if($conn->query($sql)) $message = "<div style='color: #15803d; background: #dcfce7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #86efac;'><i class='fa-solid fa-circle-check'></i> Sorotan berhasil ditambahkan.</div>";
         }
     }
@@ -83,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 // Check Edit Mode
 $edit_mode = false;
-$edit_data = ['id' => '', 'judul' => '', 'deskripsi' => '', 'tahun' => date('Y'), 'tipe_media' => 'foto', 'file_media' => ''];
+$edit_data = ['id' => '', 'judul' => '', 'deskripsi' => '', 'tahun' => date('Y'), 'tanggal_kegiatan' => date('Y-m-d'), 'tipe_media' => 'foto', 'file_media' => '', 'divisi' => ''];
 if (isset($_GET['edit'])) {
     $id = (int)$_GET['edit'];
     $res = $conn->query("SELECT * FROM sorotan WHERE id=$id");
@@ -107,7 +109,7 @@ if (isset($_GET['edit'])) {
     <form action="sorotan.php" method="POST" enctype="multipart/form-data">
         <input type="hidden" name="id" value="<?= $edit_data['id'] ?>">
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
             <div>
                 <label style="display: block; margin-bottom: 8px; font-weight: 500;">Judul Sorotan</label>
                 <input type="text" name="judul" value="<?= htmlspecialchars($edit_data['judul']) ?>" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
@@ -116,6 +118,10 @@ if (isset($_GET['edit'])) {
                 <label style="display: block; margin-bottom: 8px; font-weight: 500;">Tahun Kegiatan</label>
                 <input type="number" name="tahun" value="<?= $edit_data['tahun'] ?>" required min="2000" max="<?= date('Y')+1 ?>" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
             </div>
+            <div>
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Tanggal Kegiatan</label>
+                <input type="date" name="tanggal_kegiatan" value="<?= $edit_data['tanggal_kegiatan'] ?>" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+            </div>
         </div>
         
         <div style="margin-bottom: 20px;">
@@ -123,12 +129,22 @@ if (isset($_GET['edit'])) {
             <textarea name="deskripsi" rows="3" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: var(--font-body);"><?= htmlspecialchars($edit_data['deskripsi']) ?></textarea>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; align-items: start;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; align-items: start;">
             <div>
                 <label style="display: block; margin-bottom: 8px; font-weight: 500;">Tipe Media</label>
                 <select name="tipe_media" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: var(--font-body);">
                     <option value="foto" <?= $edit_data['tipe_media'] == 'foto' ? 'selected' : '' ?>>Foto (Gambar)</option>
                     <option value="video" <?= $edit_data['tipe_media'] == 'video' ? 'selected' : '' ?>>Video</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Link ke Divisi (Opsional)</label>
+                <select name="divisi" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: var(--font-body);">
+                    <option value="">-- Bukan Program Divisi --</option>
+                    <option value="Rohani" <?= $edit_data['divisi'] == 'Rohani' ? 'selected' : '' ?>>Rohani</option>
+                    <option value="Padus & Musik" <?= $edit_data['divisi'] == 'Padus & Musik' ? 'selected' : '' ?>>Padus & Musik</option>
+                    <option value="Humas" <?= $edit_data['divisi'] == 'Humas' ? 'selected' : '' ?>>Humas</option>
+                    <option value="Olahraga & Seni" <?= $edit_data['divisi'] == 'Olahraga & Seni' ? 'selected' : '' ?>>Olahraga & Seni</option>
                 </select>
             </div>
             <div>
@@ -184,6 +200,10 @@ if (isset($_GET['edit'])) {
                 </td>
                 <td style="padding: 15px 20px;">
                     <div style="font-weight: 600; color: var(--text-main);"><?= $row['tahun'] ?></div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);"><?= date('d/m/Y', strtotime($row['tanggal_kegiatan'])) ?></div>
+                    <?php if($row['divisi']): ?>
+                        <div style="font-size: 0.75rem; color: var(--primary); font-weight: 700;"><?= $row['divisi'] ?></div>
+                    <?php endif; ?>
                     <div style="font-size: 0.8rem; color: <?= $row['tipe_media'] == 'foto' ? 'var(--primary)' : 'var(--accent)' ?>; text-transform: uppercase;"><i class="fa-solid <?= $row['tipe_media'] == 'foto' ? 'fa-camera' : 'fa-video' ?>"></i> <?= $row['tipe_media'] ?></div>
                 </td>
                 <td style="padding: 15px 20px;">

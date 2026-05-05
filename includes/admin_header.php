@@ -1,14 +1,6 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Proteksi Admin
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    // Jika bukan admin, tendang ke login atau beranda
-    header("Location: ../auth/login.php");
-    exit();
-}
+require_once dirname(__FILE__) . '/auth_middleware.php';
+check_admin();
 
 // Konfigurasi Database (dipanggil di sini agar file admin tidak perlu memanggil berulang kali)
 require_once '../config/database.php';

@@ -92,7 +92,8 @@ if (isset($_GET['edit'])) {
             <tr>
                 <th style="padding: 15px 20px;">Nama</th>
                 <th style="padding: 15px 20px;">Email</th>
-                <th style="padding: 15px 20px;">Wijk</th>
+                <th style="padding: 15px 20px;">WhatsApp</th>
+                <th style="padding: 15px 20px; text-align: center;">Wijk</th>
                 <th style="padding: 15px 20px; text-align: center;">SIDI</th>
                 <th style="padding: 15px 20px;">Peran</th>
                 <th style="padding: 15px 20px;">Aksi</th>
@@ -101,11 +102,14 @@ if (isset($_GET['edit'])) {
         <tbody>
             <?php
             $result = $conn->query("SELECT * FROM users ORDER BY role ASC, nama ASC");
+            $user_details = [];
             while($row = $result->fetch_assoc()):
+                $user_details[$row['id']] = $row;
             ?>
             <tr style="border-bottom: 1px solid var(--border-color);">
                 <td style="padding: 15px 20px; font-weight: 500;"><?= htmlspecialchars($row['nama']) ?></td>
                 <td style="padding: 15px 20px; color: var(--text-muted);"><?= htmlspecialchars($row['email']) ?></td>
+                <td style="padding: 15px 20px; color: var(--text-muted);"><?= htmlspecialchars($row['whatsapp'] ?? '-') ?></td>
                 <td style="padding: 15px 20px; text-align: center; color: var(--text-muted);"><?= htmlspecialchars($row['wijk']) ?></td>
                 <td style="padding: 15px 20px; text-align: center; color: var(--text-muted);"><?= htmlspecialchars($row['angkatan_sidi']) ?></td>
                 <td style="padding: 15px 20px;">
@@ -114,6 +118,7 @@ if (isset($_GET['edit'])) {
                     </span>
                 </td>
                 <td style="padding: 15px 20px;">
+                    <button onclick='showDetail(<?= json_encode($row) ?>)' class="text-primary" style="margin-right: 15px; background: none; border: none; cursor: pointer; font-size: 1.1rem;" title="Lihat Detail Profil"><i class="fa-solid fa-address-card"></i></button>
                     <a href="user.php?edit=<?= $row['id'] ?>" class="text-primary" style="margin-right: 15px;" title="Edit Akun"><i class="fa-solid fa-user-gear"></i></a>
                     <?php if($row['id'] != $_SESSION['user_id']): ?>
                         <a href="user.php?delete=<?= $row['id'] ?>" class="text-danger" onclick="return confirm('Hapus akun ini secara permanen?')" title="Hapus Akun"><i class="fa-solid fa-user-minus"></i></a>
@@ -124,5 +129,69 @@ if (isset($_GET['edit'])) {
         </tbody>
     </table>
 </div>
+
+<!-- Detail Modal -->
+<div id="detailModal" class="modal-overlay" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; backdrop-filter: blur(4px);">
+    <div style="background: white; max-width: 500px; width: 90%; margin: 100px auto; border-radius: var(--radius-md); padding: 30px; position: relative; box-shadow: var(--shadow-lg);">
+        <span onclick="closeModal()" style="position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-muted);">&times;</span>
+        <h3 style="margin-bottom: 25px; border-bottom: 2px solid var(--bg-subtle); padding-bottom: 10px; color: var(--primary);">Detail Profil Anggota</h3>
+        <div id="detailContent"></div>
+    </div>
+</div>
+
+<script>
+function showDetail(user) {
+    const content = `
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <div style="display: grid; grid-template-columns: 140px 1fr;">
+                <strong style="color: var(--text-muted);">Nama Lengkap:</strong>
+                <span>${user.nama}</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 140px 1fr;">
+                <strong style="color: var(--text-muted);">Tempat, Tgl Lahir:</strong>
+                <span>${user.tempat_lahir}, ${user.tanggal_lahir}</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 140px 1fr;">
+                <strong style="color: var(--text-muted);">Alamat:</strong>
+                <span>${user.alamat}</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 140px 1fr;">
+                <strong style="color: var(--text-muted);">Wijk / Sektor:</strong>
+                <span>${user.wijk}</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 140px 1fr;">
+                <strong style="color: var(--text-muted);">Angkatan SIDI:</strong>
+                <span>${user.angkatan_sidi}</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 140px 1fr;">
+                <strong style="color: var(--text-muted);">Email:</strong>
+                <span>${user.email}</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 140px 1fr;">
+                <strong style="color: var(--text-muted);">WhatsApp:</strong>
+                <span>${user.whatsapp || '-'}</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 140px 1fr;">
+                <strong style="color: var(--text-muted);">Status:</strong>
+                <span style="text-transform: uppercase; font-weight: 600; color: var(--primary);">${user.role}</span>
+            </div>
+        </div>
+        <div style="margin-top: 30px; text-align: center;">
+            <button onclick="closeModal()" class="btn-primary" style="background: var(--text-muted); border: none;">Tutup</button>
+        </div>
+    `;
+    document.getElementById('detailContent').innerHTML = content;
+    document.getElementById('detailModal').style.display = 'block';
+}
+
+function closeModal() {
+    document.getElementById('detailModal').style.display = 'none';
+}
+
+// Close on escape
+window.onkeydown = function(event) {
+    if (event.key === "Escape") closeModal();
+}
+</script>
 
 <?php require_once '../includes/admin_footer.php'; ?>

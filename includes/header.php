@@ -1,7 +1,5 @@
 <?php 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once dirname(__FILE__) . '/auth_middleware.php';
 // Helper untuk mendeteksi halaman aktif agar navbar diberi highlight
 $current_page = basename($_SERVER['PHP_SELF']);
 
@@ -22,18 +20,18 @@ $is_logged_in = isset($_SESSION['user_id']);
 <body>
 
 <header class="glass-panel">
-    <div class="container">
+    <div class="container" style="max-width: 95%;">
         <nav class="navbar">
             <a href="index.php" class="logo">
                 <i class="fa-solid fa-church" style="color: var(--primary);"></i>
-                Naposo Duren Jaya
+                Naposo HKBP Duren Jaya
             </a>
             <ul class="nav-links">
                 <li><a href="index.php" class="<?= ($current_page == 'index.php') ? 'active' : '' ?>">Tentang Kami</a></li>
                 
                 <?php if ($is_logged_in): ?>
-                <li><a href="info.php" class="<?= ($current_page == 'info.php') ? 'active' : '' ?>">Info</a></li>
                 <li><a href="sorotan.php" class="<?= ($current_page == 'sorotan.php') ? 'active' : '' ?>">Sorotan</a></li>
+                <li><a href="info.php" class="<?= ($current_page == 'info.php') ? 'active' : '' ?>">Info</a></li>
                 <?php endif; ?>
                 
                 <li><a href="jejak.php" class="<?= ($current_page == 'jejak.php') ? 'active' : '' ?>">Jejak</a></li>

@@ -1,14 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap');
 
 :root {
-  --primary: #2563eb;
-  --primary-dark: #1d4ed8;
-  --accent: #f59e0b;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
+  --primary: #1D546D;
+  --primary-dark: #061E29;
+  --accent: #5F9598;
+  --text-main: #061E29;
+  --text-muted: #5F9598;
   --bg-main: #ffffff;
-  --bg-subtle: #f8fafc;
-  --border-color: #e2e8f0;
+  --bg-subtle: #F3F4F4;
+  --border-color: #d1d9d9;
   
   --font-heading: 'Outfit', sans-serif;
   --font-body: 'Inter', sans-serif;
@@ -23,6 +23,7 @@
   --shadow-hover: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 }
 
+html { scroll-behavior: smooth; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: var(--font-body); color: var(--text-main); background: var(--bg-main); line-height: 1.6; }
 h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); font-weight: 700; line-height: 1.2; }

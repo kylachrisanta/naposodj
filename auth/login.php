@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once dirname(__FILE__) . '/../includes/auth_middleware.php';
+
 // Jika sudah login, lempar ke index
 if (isset($_SESSION['user_id'])) {
     header("Location: ../index.php");
@@ -42,6 +43,7 @@ if (isset($_SESSION['user_id'])) {
         <?php endif; ?>
 
         <form action="process_login.php" method="POST">
+            <input type="hidden" name="csrf_token" value="<?= get_csrf_token() ?>">
             <div class="form-group">
                 <label style="display: block; margin-bottom: 8px; font-weight: 500;">Email</label>
                 <input type="email" name="email" class="form-control" placeholder="Contoh: user@gmail.com" required>
