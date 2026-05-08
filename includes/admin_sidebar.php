@@ -16,13 +16,8 @@
             </a>
         </li>
         <li>
-            <a href="sorotan.php" class="<?= ($current_page == 'sorotan.php') ? 'active' : '' ?>">
-                <i class="fa-solid fa-camera-retro"></i> Kelola Sorotan
-            </a>
-        </li>
-        <li>
-            <a href="jejak.php" class="<?= ($current_page == 'jejak.php') ? 'active' : '' ?>">
-                <i class="fa-solid fa-trophy"></i> Kelola Jejak
+            <a href="dokumentasi.php" class="<?= (strpos($current_page, 'dokumentasi.php') !== false) ? 'active' : '' ?>">
+                <i class="fa-solid fa-camera-retro"></i> Kelola Dokumentasi
             </a>
         </li>
         <li>
