@@ -3,551 +3,393 @@ require_once 'includes/auth_middleware.php';
 check_auth();
 require_once 'config/database.php';
 
-// Fetch all years and their content counts
-$years_query = "SELECT tahun, COUNT(*) as total FROM sorotan GROUP BY tahun ORDER BY tahun DESC";
-$years_result = $conn->query($years_query);
-
-// Fetch all content grouped by year for the Story Viewer
-$all_content = [];
-$content_query = "SELECT * FROM sorotan ORDER BY tahun DESC, tanggal_kegiatan ASC";
-$content_result = $conn->query($content_query);
-while($row = $content_result->fetch_assoc()) {
-    $all_content[$row['tahun']][] = [
-        'id' => $row['id'],
-        'judul' => $row['judul'],
-        'deskripsi' => $row['deskripsi'],
-        'tanggal' => date('d M Y', strtotime($row['tanggal_kegiatan'])),
-        'tipe' => $row['tipe_media'],
-        'file' => 'assets/img/sorotan/' . $row['file_media']
-    ];
+// Fetch all sorotan data grouped by year
+$query = "SELECT * FROM sorotan ORDER BY tahun DESC, tanggal_kegiatan DESC";
+$result = $conn->query($query);
+$sorotan_by_year = [];
+while($row = $result->fetch_assoc()) {
+    $sorotan_by_year[$row['tahun']][] = $row;
 }
 ?>
 <?php include 'includes/header.php'; ?>
 
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
 <style>
-    :root {
-        --ig-gradient: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-    }
-
     .sorotan-page {
-        padding-top: 120px;
-        min-height: 80vh;
-        background: #fafafa;
+        padding: 140px 0 80px;
+        background: #f8fafc;
+        min-height: 100vh;
+        overflow-x: hidden;
     }
 
-    /* Highlight Circles */
-    .highlights-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 30px;
-        justify-content: center;
-        padding: 40px 0;
+    .sorotan-header {
+        text-align: center;
+        margin-bottom: 60px;
     }
 
-    .highlight-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        cursor: pointer;
-        width: 120px;
-        transition: transform 0.2s ease;
+    .sorotan-header h1 {
+        font-family: var(--font-heading);
+        font-size: 3rem;
+        color: #1e293b;
+        margin-bottom: 10px;
+        font-weight: 800;
     }
 
-    .highlight-item:hover {
-        transform: scale(1.05);
+    .year-section {
+        margin-bottom: 80px;
+        position: relative;
     }
 
-    .highlight-ring {
-        width: 100px;
-        height: 100px;
-        padding: 3px;
-        background: var(--ig-gradient);
-        border-radius: 50%;
-        margin-bottom: 12px;
+    .year-title {
+        font-family: var(--font-heading);
+        font-size: 2.2rem;
+        color: #0f172a;
+        margin-bottom: 30px;
+        padding-left: 50px;
+        font-weight: 800;
         display: flex;
         align-items: center;
-        justify-content: center;
+        gap: 15px;
     }
 
-    .highlight-inner {
+    .year-title::before {
+        content: '';
+        width: 8px;
+        height: 40px;
+        background: var(--gradient-primary);
+        border-radius: 4px;
+    }
+
+    /* Swiper custom styles */
+    .swiper {
         width: 100%;
-        height: 100%;
-        background: white;
-        border-radius: 50%;
-        padding: 3px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
+        padding: 20px 50px 80px !important; 
     }
 
-    .highlight-thumb {
+    .swiper-slide {
+        height: auto;
+        display: flex;
+        justify-content: center;
+    }
+
+    .sorotan-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 100%;
+        max-width: 400px;
+        border: 1px solid rgba(0,0,0,0.03);
+    }
+
+    .sorotan-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+
+    .card-media {
+        width: 100%;
+        height: 300px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .card-media img, .card-media video {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        border-radius: 50%;
-        background: #eee;
+        transition: transform 0.6s ease;
     }
 
-    .highlight-label {
-        font-weight: 600;
+    .sorotan-card:hover .card-media img {
+        transform: scale(1.08);
+    }
+
+    .card-info {
+        padding: 25px;
+    }
+
+    .card-info h3 {
+        font-family: var(--font-heading);
+        font-size: 1.4rem;
+        color: #0f172a;
+        margin-bottom: 8px;
+        font-weight: 700;
+    }
+
+    .card-info p {
+        color: #64748b;
         font-size: 0.95rem;
-        color: #262626;
+        line-height: 1.5;
     }
 
-    .highlight-count {
-        font-size: 0.75rem;
-        color: #8e8e8e;
+    .card-meta {
+        margin-top: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--primary);
     }
 
-    /* Story Viewer Modal */
-    #storyViewer {
+    /* Navigation Arrows */
+    .swiper-button-next, .swiper-button-prev {
+        width: 50px;
+        height: 50px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        color: #0f172a !important;
+        transition: all 0.3s;
+        z-index: 10;
+    }
+
+    .swiper-button-next:after, .swiper-button-prev:after {
+        font-size: 1.2rem !important;
+        font-weight: 900;
+    }
+
+    .swiper-button-next:hover, .swiper-button-prev:hover {
+        background: var(--primary);
+        color: white !important;
+        transform: scale(1.1);
+    }
+
+    /* Pagination */
+    .swiper-pagination-bullet {
+        width: 10px;
+        height: 10px;
+        background: #cbd5e1;
+        opacity: 1;
+        transition: all 0.3s;
+    }
+
+    .swiper-pagination-bullet-active {
+        width: 30px;
+        border-radius: 5px;
+        background: #0f172a;
+    }
+
+    /* Video Play Icon */
+    .video-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 60px;
+        height: 60px;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(5px);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        pointer-events: none;
+    }
+
+    @media (max-width: 768px) {
+        .swiper {
+            padding: 20px 20px 60px !important;
+        }
+        .swiper-button-next, .swiper-button-prev {
+            display: none;
+        }
+        .sorotan-header h1 {
+            font-size: 2rem;
+        }
+        .year-title {
+            padding-left: 20px;
+            font-size: 1.8rem;
+        }
+    }
+
+    /* Lightbox Modal */
+    .lightbox {
         display: none;
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.95);
+        background: rgba(0,0,0,0.9);
         z-index: 9999;
         justify-content: center;
         align-items: center;
-        opacity: 0;
-        transition: opacity 0.3s ease;
+        padding: 40px;
     }
 
-    #storyViewer.active {
+    .lightbox.active {
         display: flex;
-        opacity: 1;
     }
 
-    .story-container {
-        position: relative;
-        width: 100%;
-        max-width: 450px;
-        height: 90vh;
-        background: #1a1a1a;
-        border-radius: 12px;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 0 50px rgba(0,0,0,0.5);
-        transform: scale(0.9);
-        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    #storyViewer.active .story-container {
-        transform: scale(1);
-    }
-
-    /* Progress Bars */
-    .story-progress-container {
-        position: absolute;
-        top: 15px;
-        left: 10px;
-        right: 10px;
-        display: flex;
-        gap: 5px;
-        z-index: 10;
-    }
-
-    .progress-bar {
-        height: 2px;
-        background: rgba(255, 255, 255, 0.3);
-        flex-grow: 1;
-        border-radius: 2px;
-        overflow: hidden;
-    }
-
-    .progress-inner {
-        height: 100%;
-        background: white;
-        width: 0%;
-        transition: width linear;
-    }
-
-    /* Story Header */
-    .story-header {
-        position: absolute;
-        top: 30px;
-        left: 15px;
-        right: 15px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        z-index: 10;
-        color: white;
-    }
-
-    .story-user {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .story-year-badge {
-        background: white;
-        color: black;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-weight: 700;
-        font-size: 0.8rem;
-    }
-
-    .story-date {
-        font-size: 0.85rem;
-        opacity: 0.8;
-    }
-
-    .story-close {
-        font-size: 1.5rem;
-        cursor: pointer;
-        padding: 5px;
-    }
-
-    /* Story Content */
-    .story-content-area {
-        flex-grow: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-    }
-
-    .story-media {
+    .lightbox-content {
         max-width: 100%;
         max-height: 100%;
-        object-fit: contain;
+        position: relative;
     }
 
-    .story-nav {
+    .lightbox-content img, .lightbox-content video {
+        max-width: 100%;
+        max-height: 90vh;
+        border-radius: 8px;
+    }
+
+    .lightbox-close {
         position: absolute;
-        top: 0;
-        height: 100%;
-        width: 30%;
-        z-index: 5;
+        top: -40px;
+        right: 0;
+        color: white;
+        font-size: 2rem;
         cursor: pointer;
     }
 
-    .story-nav-prev { left: 0; }
-    .story-nav-next { right: 0; width: 70%; }
-
-    /* Story Footer (Info) */
-    .story-footer {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        padding: 40px 20px 30px;
-        background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    .lightbox-info {
         color: white;
-        z-index: 10;
+        margin-top: 20px;
+        text-align: center;
     }
 
-    .story-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 5px;
-    }
-
-    .story-desc {
-        font-size: 0.9rem;
-        opacity: 0.9;
-        line-height: 1.4;
-    }
-
-    /* Controls Overlay */
-    .story-controls {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 4rem;
+    .lightbox-info h3 {
         color: white;
-        opacity: 0;
-        transition: opacity 0.2s;
-        pointer-events: none;
-        z-index: 20;
-    }
-
-    @media (max-width: 500px) {
-        .story-container {
-            width: 100%;
-            height: 100%;
-            border-radius: 0;
-            max-width: none;
-        }
+        font-size: 1.5rem;
+        margin-bottom: 10px;
     }
 </style>
 
 <div class="sorotan-page">
-    <div class="container">
-        <div class="text-center" style="margin-bottom: 40px;">
-            <h1 class="section-title">Sorotan Naposo</h1>
-            <p class="section-subtitle">Klik lingkaran tahun untuk melihat rangkuman kegiatan dalam format cerita interaktif.</p>
-        </div>
+    <div class="sorotan-header">
+        <h1>Dokumentasi Sorotan Naposo</h1>
+        <p style="color: #64748b; font-size: 1.1rem;">Momen berharga dalam kebersamaan kita melayani Tuhan.</p>
+    </div>
 
-        <div class="highlights-container">
-            <?php if($years_result->num_rows > 0): ?>
-                <?php while($year = $years_result->fetch_assoc()): ?>
-                    <?php 
-                        // Find the first photo for thumbnail, or use a placeholder
-                        $thumb = 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=200&q=80';
-                        foreach($all_content[$year['tahun']] as $item) {
-                            if($item['tipe'] == 'foto') {
-                                $thumb = $item['file'];
-                                break;
-                            }
-                        }
-                    ?>
-                    <div class="highlight-item" onclick="openStory(<?= $year['tahun'] ?>)">
-                        <div class="highlight-ring">
-                            <div class="highlight-inner">
-                                <img src="<?= $thumb ?>" class="highlight-thumb" alt="Thumbnail">
+    <?php if(empty($sorotan_by_year)): ?>
+        <div class="text-center" style="width: 100%; padding: 100px 0;">
+            <i class="fa-solid fa-camera-retro" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 20px;"></i>
+            <p style="color: #64748b;">Belum ada dokumentasi sorotan.</p>
+        </div>
+    <?php else: ?>
+        <?php foreach($sorotan_by_year as $tahun => $items): ?>
+            <div class="year-section">
+                <h2 class="year-title">Tahun <?= $tahun ?></h2>
+                
+                <div class="swiper yearSwiper" id="swiper-<?= $tahun ?>">
+                    <div class="swiper-wrapper">
+                        <?php foreach($items as $item): ?>
+                            <div class="swiper-slide">
+                                <div class="sorotan-card" onclick="openLightbox('<?= $item['file_media'] ?>', '<?= $item['tipe_media'] ?>', '<?= addslashes(htmlspecialchars($item['judul'])) ?>', '<?= addslashes(htmlspecialchars($item['deskripsi'])) ?>')" style="cursor: pointer;">
+                                    <div class="card-media">
+                                        <?php if($item['tipe_media'] == 'foto'): ?>
+                                            <img src="assets/img/sorotan/<?= $item['file_media'] ?>" alt="<?= htmlspecialchars($item['judul']) ?>">
+                                        <?php else: ?>
+                                            <video src="assets/img/sorotan/<?= $item['file_media'] ?>"></video>
+                                            <div class="video-overlay"><i class="fa-solid fa-play"></i></div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="card-info">
+                                        <h3><?= htmlspecialchars($item['judul']) ?></h3>
+                                        <p><?= mb_strimwidth(htmlspecialchars($item['deskripsi']), 0, 100, "...") ?></p>
+                                        <div class="card-meta">
+                                            <span><?= date('d M Y', strtotime($item['tanggal_kegiatan'])) ?></span>
+                                            <?php if($item['divisi']): ?>
+                                                <span>•</span>
+                                                <span><?= $item['divisi'] ?></span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <span class="highlight-label"><?= $year['tahun'] ?></span>
-                        <span class="highlight-count"><?= $year['total'] ?> Konten</span>
+                        <?php endforeach; ?>
                     </div>
-                <?php endwhile; ?>
-            <?php else: ?>
-                <div class="text-center" style="padding: 100px 0; width: 100%;">
-                    <i class="fa-solid fa-folder-open" style="font-size: 3rem; color: #ccc; margin-bottom: 20px;"></i>
-                    <p style="color: #888;">Belum ada sorotan yang diunggah.</p>
+                    
+                    <!-- Add Pagination -->
+                    <div class="swiper-pagination"></div>
+                    
+                    <!-- Add Navigation -->
+                    <div class="swiper-button-next"></div>
+                    <div class="swiper-button-prev"></div>
                 </div>
-            <?php endif; ?>
+            </div>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox" onclick="closeLightbox()">
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        <div id="lightboxMedia"></div>
+        <div class="lightbox-info">
+            <h3 id="lightboxTitle"></h3>
+            <p id="lightboxDesc"></p>
         </div>
     </div>
 </div>
 
-<!-- Story Viewer Modal -->
-<div id="storyViewer">
-    <div class="story-container">
-        <!-- Progress Bars -->
-        <div class="story-progress-container" id="progressBarContainer">
-            <!-- Bars will be injected by JS -->
-        </div>
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
-        <!-- Header -->
-        <div class="story-header">
-            <div class="story-user">
-                <span class="story-year-badge" id="storyYearBadge">2025</span>
-                <span class="story-date" id="storyDate">24 Apr 2026</span>
-            </div>
-            <div class="story-close" onclick="closeStory()">
-                <i class="fa-solid fa-xmark"></i>
-            </div>
-        </div>
-
-        <!-- Media Area -->
-        <div class="story-content-area" id="storyContentArea">
-            <div class="story-nav story-nav-prev" onclick="prevContent()"></div>
-            <div class="story-nav story-nav-next" onclick="nextContent()"></div>
-            <div id="mediaPlaceholder" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
-                <!-- Media injected by JS -->
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="story-footer">
-            <h3 class="story-title" id="storyTitle">Judul Kegiatan</h3>
-            <p class="story-desc" id="storyDesc">Deskripsi singkat kegiatan...</p>
-        </div>
-
-        <!-- Pause/Play Indicator -->
-        <div class="story-controls" id="playPauseIcon">
-            <i class="fa-solid fa-pause"></i>
-        </div>
-    </div>
-</div>
-
+<!-- Initialize Swipers -->
 <script>
-    const allContent = <?= json_stringify($all_content) ?>;
-    let currentYearContent = [];
-    let currentIndex = 0;
-    let storyTimer;
-    let isPaused = false;
-    const STORY_DURATION = 5000; // 5 seconds for photos
-
-    function openStory(year) {
-        currentYearContent = allContent[year];
-        currentIndex = 0;
-        document.getElementById('storyYearBadge').innerText = year;
-        
-        // Setup Progress Bars
-        const pbContainer = document.getElementById('progressBarContainer');
-        pbContainer.innerHTML = '';
-        currentYearContent.forEach((_, i) => {
-            const bar = document.createElement('div');
-            bar.className = 'progress-bar';
-            bar.innerHTML = '<div class="progress-inner"></div>';
-            pbContainer.appendChild(bar);
+    document.querySelectorAll('.yearSwiper').forEach(el => {
+        new Swiper(el, {
+            slidesPerView: 1,
+            spaceBetween: 30,
+            loop: false,
+            centeredSlides: false,
+            grabCursor: true,
+            pagination: {
+                el: el.querySelector('.swiper-pagination'),
+                clickable: true,
+            },
+            navigation: {
+                nextEl: el.querySelector('.swiper-button-next'),
+                prevEl: el.querySelector('.swiper-button-prev'),
+            },
+            breakpoints: {
+                640: {
+                    slidesPerView: 2,
+                },
+                1024: {
+                    slidesPerView: 3,
+                },
+                1440: {
+                    slidesPerView: 4,
+                },
+            },
         });
-
-        const viewer = document.getElementById('storyViewer');
-        viewer.classList.add('active');
-        document.body.style.overflow = 'hidden'; // Prevent scroll
-
-        showContent(0);
-    }
-
-    function closeStory() {
-        const viewer = document.getElementById('storyViewer');
-        viewer.classList.remove('active');
-        document.body.style.overflow = 'auto';
-        clearTimeout(storyTimer);
-        
-        // Stop any playing video
-        const media = document.querySelector('.story-media');
-        if(media && media.tagName === 'VIDEO') media.pause();
-    }
-
-    function showContent(index) {
-        if (index < 0 || index >= currentYearContent.length) {
-            closeStory();
-            return;
-        }
-
-        currentIndex = index;
-        const item = currentYearContent[index];
-        const mediaPlaceholder = document.getElementById('mediaPlaceholder');
-        
-        // Update Info
-        document.getElementById('storyDate').innerText = item.tanggal;
-        document.getElementById('storyTitle').innerText = item.judul;
-        document.getElementById('storyDesc').innerText = item.deskripsi;
-
-        // Clear timer
-        clearTimeout(storyTimer);
-
-        // Update Progress Bars State
-        const bars = document.querySelectorAll('.progress-inner');
-        bars.forEach((bar, i) => {
-            bar.style.transition = 'none';
-            if (i < index) bar.style.width = '100%';
-            else bar.style.width = '0%';
-        });
-
-        // Inject Media
-        if (item.tipe === 'foto') {
-            mediaPlaceholder.innerHTML = `<img src="${item.file}" class="story-media" alt="Story">`;
-            startTimer(STORY_DURATION);
-        } else {
-            mediaPlaceholder.innerHTML = `<video src="${item.file}" class="story-media" autoplay playsinline id="storyVideo"></video>`;
-            const video = document.getElementById('storyVideo');
-            video.onloadedmetadata = () => {
-                startTimer(video.duration * 1000);
-            };
-            video.onended = nextContent;
-        }
-    }
-
-    function startTimer(duration) {
-        const bar = document.querySelectorAll('.progress-inner')[currentIndex];
-        bar.style.transition = `width ${duration}ms linear`;
-        
-        // Request reflow to trigger transition
-        void bar.offsetWidth;
-        bar.style.width = '100%';
-
-        storyTimer = setTimeout(nextContent, duration);
-    }
-
-    function nextContent() {
-        if (currentIndex + 1 < currentYearContent.length) {
-            showContent(currentIndex + 1);
-        } else {
-            closeStory();
-        }
-    }
-
-    function prevContent() {
-        if (currentIndex > 0) {
-            showContent(currentIndex - 1);
-        } else {
-            showContent(0);
-        }
-    }
-
-    // Pause/Play on hold
-    const contentArea = document.getElementById('storyContentArea');
-    let holdTimeout;
-
-    contentArea.onmousedown = contentArea.ontouchstart = (e) => {
-        holdTimeout = setTimeout(() => {
-            isPaused = true;
-            pauseStory();
-        }, 200);
-    };
-
-    contentArea.onmouseup = contentArea.onmouseleave = contentArea.ontouchend = () => {
-        clearTimeout(holdTimeout);
-        if (isPaused) {
-            isPaused = false;
-            resumeStory();
-        }
-    };
-
-    function pauseStory() {
-        clearTimeout(storyTimer);
-        const bar = document.querySelectorAll('.progress-inner')[currentIndex];
-        const computedStyle = window.getComputedStyle(bar);
-        const width = computedStyle.getPropertyValue('width');
-        bar.style.transition = 'none';
-        bar.style.width = width;
-        
-        const video = document.getElementById('storyVideo');
-        if(video) video.pause();
-
-        showPlayPauseIcon('pause');
-    }
-
-    function resumeStory() {
-        const bar = document.querySelectorAll('.progress-inner')[currentIndex];
-        const currentWidth = parseFloat(bar.style.width);
-        const containerWidth = bar.parentElement.offsetWidth;
-        const remainingPercent = 1 - (currentWidth / containerWidth);
-        
-        const item = currentYearContent[currentIndex];
-        let remainingTime;
-
-        if (item.tipe === 'foto') {
-            remainingTime = STORY_DURATION * remainingPercent;
-        } else {
-            const video = document.getElementById('storyVideo');
-            remainingTime = (video.duration - video.currentTime) * 1000;
-            video.play();
-        }
-
-        bar.style.transition = `width ${remainingTime}ms linear`;
-        bar.style.width = '100%';
-        storyTimer = setTimeout(nextContent, remainingTime);
-
-        showPlayPauseIcon('play');
-    }
-
-    function showPlayPauseIcon(type) {
-        const icon = document.getElementById('playPauseIcon');
-        icon.innerHTML = type === 'pause' ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play"></i>';
-        icon.style.opacity = '0.5';
-        setTimeout(() => icon.style.opacity = '0', 500);
-    }
-
-    // Keyboard navigation
-    document.addEventListener('keydown', (e) => {
-        const viewer = document.getElementById('storyViewer');
-        if (!viewer.classList.contains('active')) return;
-
-        if (e.key === 'ArrowRight') nextContent();
-        if (e.key === 'ArrowLeft') prevContent();
-        if (e.key === 'Escape') closeStory();
     });
-</script>
 
-<?php 
-function json_stringify($data) {
-    return json_encode($data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE);
-}
-?>
+    function openLightbox(file, type, title, desc) {
+        const lightbox = document.getElementById('lightbox');
+        const mediaContainer = document.getElementById('lightboxMedia');
+        const titleEl = document.getElementById('lightboxTitle');
+        const descEl = document.getElementById('lightboxDesc');
+
+        mediaContainer.innerHTML = '';
+        if (type === 'foto') {
+            mediaContainer.innerHTML = `<img src="assets/img/sorotan/${file}" alt="${title}">`;
+        } else {
+            mediaContainer.innerHTML = `<video src="assets/img/sorotan/${file}" controls autoplay></video>`;
+        }
+
+        titleEl.innerText = title;
+        descEl.innerText = desc;
+        lightbox.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+        const lightbox = document.getElementById('lightbox');
+        lightbox.classList.remove('active');
+        document.body.style.overflow = 'auto';
+        document.getElementById('lightboxMedia').innerHTML = '';
+    }
+</script>
 
 <?php include 'includes/footer.php'; ?>

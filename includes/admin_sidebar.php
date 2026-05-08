@@ -11,13 +11,8 @@
             </a>
         </li>
         <li>
-            <a href="kegiatan.php" class="<?= ($current_page == 'kegiatan.php') ? 'active' : '' ?>">
-                <i class="fa-regular fa-calendar-check"></i> Kelola Kegiatan
-            </a>
-        </li>
-        <li>
-            <a href="warta.php" class="<?= ($current_page == 'warta.php') ? 'active' : '' ?>">
-                <i class="fa-solid fa-bullhorn"></i> Kelola Warta
+            <a href="kegiatan_warta.php" class="<?= ($current_page == 'kegiatan_warta.php') ? 'active' : '' ?>">
+                <i class="fa-solid fa-calendar-days"></i> Kegiatan & Warta
             </a>
         </li>
         <li>
@@ -31,18 +26,13 @@
             </a>
         </li>
         <li>
-            <a href="pengurus.php" class="<?= ($current_page == 'pengurus.php') ? 'active' : '' ?>">
-                <i class="fa-solid fa-users"></i> Kelola Pengurus
-            </a>
-        </li>
-        <li>
             <a href="user.php" class="<?= ($current_page == 'user.php') ? 'active' : '' ?>">
                 <i class="fa-solid fa-user-shield"></i> Kelola Akun
             </a>
         </li>
         <li>
-            <a href="visi_misi.php" class="<?= ($current_page == 'visi_misi.php') ? 'active' : '' ?>">
-                <i class="fa-solid fa-lightbulb"></i> Kelola Visi & Misi
+            <a href="pengurus_visi_misi.php" class="<?= ($current_page == 'pengurus_visi_misi.php') ? 'active' : '' ?>">
+                <i class="fa-solid fa-users-gear"></i> Pengurus & Visi Misi
             </a>
         </li>
     </ul>
@@ -56,9 +46,9 @@
         <div class="topbar-right">
             <div class="admin-profile">
                 <i class="fa-solid fa-circle-user" style="font-size: 24px; color: var(--primary);"></i>
-                <span>Halo, <?= htmlspecialchars($_SESSION['nama']) ?></span>
+                <span>Halo, <?= htmlspecialchars($_SESSION['admin_nama'] ?? '') ?></span>
             </div>
-            <a href="../auth/logout.php" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            <a href="../auth/logout.php?role=admin" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         </div>
     </header>
     

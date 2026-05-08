@@ -23,9 +23,8 @@ function check_auth() {
  * Check if user is an admin
  */
 function check_admin() {
-    check_auth();
-    if ($_SESSION['role'] !== 'admin') {
-        header("Location: /naposodj/index.php");
+    if (!isset($_SESSION['admin_id']) || $_SESSION['admin_role'] !== 'admin') {
+        header("Location: /naposodj/auth/login.php");
         exit();
     }
 }

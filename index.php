@@ -148,20 +148,20 @@ $misi_points = explode("\n", str_replace("\r", "", $misi_text));
                     <ul style="list-style: none; padding: 0;">
                         <?php foreach($misi_points as $point): if(trim($point) == '') continue; ?>
                         <li style="margin-bottom: 15px; display: flex; gap: 12px; align-items: flex-start;">
-                            <i class="fa-solid fa-check-circle" style="color: #22c55e; margin-top: 6px; font-size: 1.1rem;"></i>
+                            <i class="fa-solid fa-check-circle" style="color: var(--accent); margin-top: 6px; font-size: 1.1rem;"></i>
                             <span style="font-size: 1.05rem;"><?= htmlspecialchars(trim($point)) ?></span>
                         </li>
                         <?php endforeach; ?>
                     </ul>
                 </div>
-                <a href="auth/register.php" class="btn-primary" style="background: #22c55e; border-color: #16a34a; padding: 18px 45px; font-size: 1.1rem; border-radius: 50px; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.3);">
+                <a href="auth/register.php" class="btn-primary" style="background: var(--gradient-accent); padding: 18px 45px; font-size: 1.1rem; border-radius: 50px; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 10px 20px -5px rgba(244, 63, 94, 0.4);">
                     <i class="fa-solid fa-user-plus"></i> Gabung Sekarang
                 </a>
             </div>
             <div class="visi-misi-image">
                 <div style="position: relative;">
                     <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80" alt="Visi Misi" style="border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 100%; height: auto;">
-                    <div style="position: absolute; z-index: -1; top: -20px; right: -20px; width: 100%; height: 100%; border: 4px solid #22c55e; border-radius: var(--radius-lg);"></div>
+                    <div style="position: absolute; z-index: -1; top: -20px; right: -20px; width: 100%; height: 100%; border: 4px solid var(--accent); border-radius: var(--radius-lg);"></div>
                 </div>
             </div>
         </div>

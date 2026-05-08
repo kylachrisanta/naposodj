@@ -1,11 +1,7 @@
 <?php
 require_once dirname(__FILE__) . '/../includes/auth_middleware.php';
 
-// Jika sudah login, lempar ke index
-if (isset($_SESSION['user_id'])) {
-    header("Location: ../index.php");
-    exit();
-}
+// Halaman login dapat diakses kapan saja untuk login peran lain
 ?>
 <!DOCTYPE html>
 <html lang="id">

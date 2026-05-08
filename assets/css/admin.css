@@ -2,8 +2,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap');
 
 :root {
-  --primary: #2563eb;
-  --primary-dark: #1d4ed8;
+  --primary: #4f46e5;
+  --primary-dark: #3730a3;
+  --primary-light: #818cf8;
+  --gradient-primary: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
   --sidebar-bg: #0f172a;
   --sidebar-hover: #1e293b;
   --bg-main: #f1f5f9;
@@ -59,8 +61,10 @@ a { text-decoration: none; }
 .dash-info h2 { font-size: 1.8rem; margin: 0; }
 
 /* Buttons & Utilities */
-.btn-primary { background: var(--primary); color: white; padding: 10px 20px; border-radius: 6px; font-weight: 500; display: inline-block; border: none; cursor: pointer; transition: 0.2s; }
-.btn-primary:hover { background: var(--primary-dark); }
+.btn-primary { background: var(--gradient-primary); color: white; padding: 10px 20px; border-radius: 6px; font-weight: 500; display: inline-block; border: none; cursor: pointer; transition: 0.3s; position: relative; overflow: hidden; z-index: 1; }
+.btn-primary::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); z-index: -1; transition: opacity 0.3s; opacity: 0; }
+.btn-primary:hover::before { opacity: 1; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4); }
 
 /* CRUD Utilities */
 .form-control {
@@ -75,7 +79,7 @@ a { text-decoration: none; }
 .form-control:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
 }
 label {
   font-size: 0.9rem;

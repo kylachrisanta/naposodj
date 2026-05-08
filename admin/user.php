@@ -3,19 +3,25 @@ require_once '../includes/admin_header.php';
 require_once '../includes/admin_sidebar.php';
 
 $message = "";
+if (isset($_SESSION['admin_flash'])) {
+    $message = $_SESSION['admin_flash'];
+    unset($_SESSION['admin_flash']);
+}
 
 // Handle Delete
 if (isset($_GET['delete'])) {
     $id = (int)$_GET['delete'];
     
     // Cegah hapus diri sendiri
-    if($id == $_SESSION['user_id']) {
-        $message = "<div class='alert alert-danger'>Anda tidak bisa menghapus akun Anda sendiri!</div>";
+    if($id == $_SESSION['admin_id']) {
+        $_SESSION['admin_flash'] = "<div class='alert alert-danger'>Anda tidak bisa menghapus akun Anda sendiri!</div>";
     } else {
         if($conn->query("DELETE FROM users WHERE id=$id")) {
-            $message = "<div class='alert alert-success'>Akun berhasil dihapus.</div>";
+            $_SESSION['admin_flash'] = "<div class='alert alert-success'>Akun berhasil dihapus.</div>";
         }
     }
+    header("Location: user.php");
+    exit();
 }
 
 // Handle Update Role & Password
@@ -32,8 +38,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['id'])) {
     }
     
     if($conn->query($sql)) {
-        $message = "<div class='alert alert-success'>Data akun berhasil diperbarui.</div>";
+        $_SESSION['admin_flash'] = "<div class='alert alert-success'>Data akun berhasil diperbarui.</div>";
     }
+    header("Location: user.php");
+    exit();
 }
 
 // Edit Mode
@@ -120,7 +128,7 @@ if (isset($_GET['edit'])) {
                 <td style="padding: 15px 20px;">
                     <button onclick='showDetail(<?= json_encode($row) ?>)' class="text-primary" style="margin-right: 15px; background: none; border: none; cursor: pointer; font-size: 1.1rem;" title="Lihat Detail Profil"><i class="fa-solid fa-address-card"></i></button>
                     <a href="user.php?edit=<?= $row['id'] ?>" class="text-primary" style="margin-right: 15px;" title="Edit Akun"><i class="fa-solid fa-user-gear"></i></a>
-                    <?php if($row['id'] != $_SESSION['user_id']): ?>
+                    <?php if($row['id'] != $_SESSION['admin_id']): ?>
                         <a href="user.php?delete=<?= $row['id'] ?>" class="text-danger" onclick="return confirm('Hapus akun ini secara permanen?')" title="Hapus Akun"><i class="fa-solid fa-user-minus"></i></a>
                     <?php endif; ?>
                 </td>

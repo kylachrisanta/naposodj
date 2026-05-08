@@ -18,15 +18,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Password benar, regenerasi session ID untuk keamanan
             session_regenerate_id(true);
             
-            // Set session
-            $_SESSION['user_id'] = $row['id'];
-            $_SESSION['nama'] = $row['nama'];
-            $_SESSION['role'] = $row['role'];
-
-            // Cek role untuk redirect
+            // Cek role untuk redirect dan set session terpisah
             if ($row['role'] == 'admin') {
+                $_SESSION['admin_id'] = $row['id'];
+                $_SESSION['admin_nama'] = $row['nama'];
+                $_SESSION['admin_role'] = $row['role'];
                 header("Location: ../admin/index.php");
             } else {
+                $_SESSION['user_id'] = $row['id'];
+                $_SESSION['user_nama'] = $row['nama'];
+                $_SESSION['user_role'] = $row['role'];
                 header("Location: ../index.php");
             }
             exit();

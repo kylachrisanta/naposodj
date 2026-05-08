@@ -39,7 +39,7 @@ $is_logged_in = isset($_SESSION['user_id']);
             </ul>
             <div class="nav-actions">
                 <?php if ($is_logged_in): ?>
-                    <a href="auth/logout.php" class="btn-primary" style="background: var(--text-muted);"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                    <a href="auth/logout.php?role=user" class="btn-primary" style="background: var(--text-muted);"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
                 <?php else: ?>
                     <a href="auth/login.php" class="btn-primary"><i class="fa-solid fa-user"></i> Login</a>
                 <?php endif; ?>

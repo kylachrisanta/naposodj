@@ -3,6 +3,10 @@ require_once '../includes/admin_header.php';
 require_once '../includes/admin_sidebar.php';
 
 $message = "";
+if (isset($_SESSION['admin_flash'])) {
+    $message = $_SESSION['admin_flash'];
+    unset($_SESSION['admin_flash']);
+}
 $upload_dir = '../assets/img/sorotan/';
 
 // Handle Delete
@@ -17,7 +21,9 @@ if (isset($_GET['delete'])) {
             unlink($file_path);
         }
         $conn->query("DELETE FROM sorotan WHERE id=$id");
-        $message = "<div style='color: #15803d; background: #dcfce7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #86efac;'><i class='fa-solid fa-circle-check'></i> Sorotan berhasil dihapus beserta filenya.</div>";
+        $_SESSION['admin_flash'] = "<div style='color: #15803d; background: #dcfce7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #86efac;'><i class='fa-solid fa-circle-check'></i> Sorotan berhasil dihapus beserta filenya.</div>";
+        header("Location: sorotan.php");
+        exit();
     }
 }
 
@@ -40,24 +46,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $valid_extensions = ['jpg', 'jpeg', 'png', 'webp', 'mp4', 'webm'];
         
         if(!in_array($file_extension, $valid_extensions)) {
-            $message = "<div style='color: #b91c1c; background: #fee2e2; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #f87171;'>Format file tidak valid. Hanya JPG, PNG, WEBP, MP4, WEBM.</div>";
+            $_SESSION['admin_flash'] = "<div style='color: #b91c1c; background: #fee2e2; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #f87171;'>Format file tidak valid. Hanya JPG, PNG, WEBP, MP4, WEBM.</div>";
             $uploadOk = false;
         } else {
             // Check size (max 20MB)
             if ($_FILES["file_media"]["size"] > 20000000) {
-                $message = "<div style='color: #b91c1c; background: #fee2e2; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #f87171;'>Ukuran file terlalu besar (Maks 20MB).</div>";
+                $_SESSION['admin_flash'] = "<div style='color: #b91c1c; background: #fee2e2; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #f87171;'>Ukuran file terlalu besar (Maks 20MB).</div>";
                 $uploadOk = false;
             } else {
                 $file_media = time() . '_' . rand(100,999) . '.' . $file_extension;
                 if(!move_uploaded_file($_FILES["file_media"]["tmp_name"], $upload_dir . $file_media)) {
-                    $message = "<div style='color: #b91c1c; background: #fee2e2; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #f87171;'>Gagal mengunggah file. Pastikan folder assets/img/sorotan/ ada dan writable.</div>";
+                    $_SESSION['admin_flash'] = "<div style='color: #b91c1c; background: #fee2e2; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #f87171;'>Gagal mengunggah file. Pastikan folder assets/img/sorotan/ ada dan writable.</div>";
                     $uploadOk = false;
                 }
             }
         }
     } else {
         if($id == 0) { // If adding new, file is required
-            $message = "<div style='color: #b91c1c; background: #fee2e2; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #f87171;'>File media wajib diunggah untuk data baru.</div>";
+            $_SESSION['admin_flash'] = "<div style='color: #b91c1c; background: #fee2e2; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #f87171;'>File media wajib diunggah untuk data baru.</div>";
             $uploadOk = false;
         }
     }
@@ -74,13 +80,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             } else {
                 $sql = "UPDATE sorotan SET judul='$judul', deskripsi='$deskripsi', tahun=$tahun, tanggal_kegiatan='$tanggal_kegiatan', tipe_media='$tipe_media', divisi='$divisi' WHERE id=$id";
             }
-            if($conn->query($sql)) $message = "<div style='color: #15803d; background: #dcfce7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #86efac;'><i class='fa-solid fa-circle-check'></i> Sorotan berhasil diperbarui.</div>";
+            if($conn->query($sql)) $_SESSION['admin_flash'] = "<div style='color: #15803d; background: #dcfce7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #86efac;'><i class='fa-solid fa-circle-check'></i> Sorotan berhasil diperbarui.</div>";
         } else {
             // Add
             $sql = "INSERT INTO sorotan (judul, deskripsi, tahun, tanggal_kegiatan, tipe_media, file_media, divisi) VALUES ('$judul', '$deskripsi', $tahun, '$tanggal_kegiatan', '$tipe_media', '$file_media', '$divisi')";
-            if($conn->query($sql)) $message = "<div style='color: #15803d; background: #dcfce7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #86efac;'><i class='fa-solid fa-circle-check'></i> Sorotan berhasil ditambahkan.</div>";
+            if($conn->query($sql)) $_SESSION['admin_flash'] = "<div style='color: #15803d; background: #dcfce7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #86efac;'><i class='fa-solid fa-circle-check'></i> Sorotan berhasil ditambahkan.</div>";
         }
     }
+    header("Location: sorotan.php");
+    exit();
 }
 
 // Check Edit Mode
