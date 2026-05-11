@@ -180,6 +180,12 @@ function showDetail(user) {
                 <span>${user.whatsapp || '-'}</span>
             </div>
             <div style="display: grid; grid-template-columns: 140px 1fr;">
+                <strong style="color: var(--text-muted);">Notifikasi WA:</strong>
+                <span class="badge" style="background: ${user.wa_notification === 'aktif' ? '#dcfce7' : '#fee2e2'}; color: ${user.wa_notification === 'aktif' ? '#15803d' : '#b91c1c'};">
+                    ${user.wa_notification === 'aktif' ? 'AKTIF' : 'NONAKTIF'}
+                </span>
+            </div>
+            <div style="display: grid; grid-template-columns: 140px 1fr;">
                 <strong style="color: var(--text-muted);">Status:</strong>
                 <span style="text-transform: uppercase; font-weight: 600; color: var(--primary);">${user.role}</span>
             </div>

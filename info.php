@@ -13,8 +13,8 @@ require_once 'config/database.php';
 <!-- Info Header -->
 <section class="section bg-subtle" style="padding-top: 120px; padding-bottom: 40px;">
     <div class="container text-center">
-        <h1 class="section-title">Informasi & Warta</h1>
-        <p class="section-subtitle">Jadwal kegiatan mingguan dan pengumuman penting bagi anggota Naposo HKBP Duren Jaya.</p>
+        <h1 class="section-title">Informasi Utama</h1>
+        <p class="section-subtitle">Jadwal kegiatan mingguan dan pengumuman bagi anggota Naposo HKBP Duren Jaya.</p>
     </div>
 </section>
 
@@ -64,7 +64,7 @@ require_once 'config/database.php';
 <!-- Warta Pengumuman -->
 <section class="section bg-subtle">
     <div class="container">
-        <h2 style="font-family: var(--font-heading); font-size: 1.75rem; margin-bottom: 20px;"><i class="fa-solid fa-bullhorn" style="color: var(--accent);"></i> Warta Jemaat & Pengumuman</h2>
+        <h2 style="font-family: var(--font-heading); font-size: 1.75rem; margin-bottom: 20px;"><i class="fa-solid fa-bullhorn" style="color: var(--accent);"></i> Pengumuman</h2>
         
         <div style="display: flex; flex-direction: column; gap: 15px;">
             <?php

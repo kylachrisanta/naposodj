@@ -264,8 +264,8 @@ while($row = $result->fetch_assoc()) {
 
 <div class="sorotan-page">
     <div class="sorotan-header">
-        <h1>Dokumentasi Sorotan Naposo</h1>
-        <p style="color: #64748b; font-size: 1.1rem;">Momen berharga dalam kebersamaan kita melayani Tuhan.</p>
+        <h1>Sorotan Naposo</h1>
+        <p style="color: #64748b; font-size: 1.1rem;">Rekap kegiatan Naposo pertahun.</p>
     </div>
 
     <?php if(empty($sorotan_by_year)): ?>

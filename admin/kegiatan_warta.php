@@ -98,6 +98,21 @@ if (isset($_GET['edit_warta'])) {
         $edit_warta_data = $res->fetch_assoc();
     }
 }
+
+// Handle Launch WhatsApp Notifications (Manual Custom)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_wa_custom'])) {
+    $target_id = (int)$_POST['id_kegiatan'];
+    $custom_message = $_POST['pesan_custom'];
+    
+    // Sertakan script pengiriman (script ini sudah mendukung $target_id dan $custom_message)
+    ob_start();
+    include '../cron/send_wa_notifications.php';
+    ob_end_clean();
+    
+    $_SESSION['admin_flash'] = "<div style='color: #1d4ed8; background: #dbeafe; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #93c5fd;'><i class='fa-solid fa-paper-plane'></i> Notifikasi WhatsApp berhasil dikirim dengan pesan kustom.</div>";
+    header("Location: kegiatan_warta.php");
+    exit();
+}
 ?>
 
 <div style="margin-bottom: 30px;">
@@ -193,6 +208,7 @@ if (isset($_GET['edit_warta'])) {
                             <div><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i><?= htmlspecialchars($row['tempat']) ?></div>
                         </td>
                         <td style="padding: 15px 20px; vertical-align: top; white-space: nowrap;">
+                            <button onclick='openWAModal(<?= json_encode($row) ?>)' style="color: #059669; margin-right: 15px; background: none; border: none; cursor: pointer; padding: 0; font-size: inherit; font-family: inherit;" title="Luncurkan WA"><i class="fa-solid fa-paper-plane"></i> Luncurkan</button>
                             <a href="kegiatan_warta.php?edit_kegiatan=<?= $row['id'] ?>" style="color: var(--accent); margin-right: 15px;" title="Edit"><i class="fa-solid fa-pen-to-square"></i></a>
                             <a href="kegiatan_warta.php?delete_kegiatan=<?= $row['id'] ?>" onclick="return confirm('Yakin ingin menghapus jadwal ini?');" style="color: #b91c1c;" title="Hapus"><i class="fa-solid fa-trash"></i></a>
                         </td>
@@ -249,5 +265,75 @@ if (isset($_GET['edit_warta'])) {
         </div>
     </div>
 </div>
+
+<!-- WhatsApp Custom Message Modal -->
+<div id="waModal" class="modal-overlay" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; backdrop-filter: blur(4px);">
+    <div style="background: white; max-width: 600px; width: 90%; margin: 50px auto; border-radius: var(--radius-md); padding: 30px; position: relative; box-shadow: var(--shadow-lg);">
+        <span onclick="closeWAModal()" style="position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-muted);">&times;</span>
+        <h3 style="margin-bottom: 20px; border-bottom: 2px solid var(--bg-subtle); padding-bottom: 10px; color: var(--primary);">Kirim Pengingat WhatsApp</h3>
+        
+        <form action="kegiatan_warta.php" method="POST">
+            <input type="hidden" name="id_kegiatan" id="wa_id_kegiatan">
+            
+            <div style="background: #f8fafc; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 0.9rem; border: 1px solid var(--border-color);">
+                <div style="margin-bottom: 5px;"><strong>Kegiatan:</strong> <span id="wa_display_nama"></span></div>
+                <div style="margin-bottom: 5px;"><strong>Waktu:</strong> <span id="wa_display_waktu"></span></div>
+                <div><strong>Tempat:</strong> <span id="wa_display_tempat"></span></div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Isi Pesan WhatsApp</label>
+                <textarea name="pesan_custom" id="wa_pesan_custom" rows="12" required style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-family: var(--font-body); font-size: 0.95rem; line-height: 1.5;"></textarea>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">
+                    <i class="fa-solid fa-circle-info"></i> Pesan di atas adalah template otomatis. Anda dapat mengubah salam, ajakan, atau informasi tambahan lainnya.
+                </p>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" onclick="closeWAModal()" style="padding: 10px 20px; background: #e2e8f0; color: #334155; border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">Batal</button>
+                <button type="submit" name="submit_wa_custom" class="btn-primary" style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-paper-plane"></i> Kirim Notifikasi Sekarang
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openWAModal(kegiatan) {
+    document.getElementById('wa_id_kegiatan').value = kegiatan.id;
+    document.getElementById('wa_display_nama').innerText = kegiatan.nama_kegiatan;
+    
+    const date = new Date(kegiatan.tanggal);
+    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+    const tgl = date.toLocaleDateString('id-ID', options);
+    const jam = date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+    
+    document.getElementById('wa_display_waktu').innerText = tgl + ', ' + jam + ' WIB';
+    document.getElementById('wa_display_tempat').innerText = kegiatan.tempat;
+
+    let template = `Halo! 
+
+Ada kegiatan seru nih di Naposo HKBP Duren Jaya! Mari kita luangkan waktu untuk berkumpul bersama.
+
+📌 *Kegiatan:* ${kegiatan.nama_kegiatan}
+📅 *Tanggal:* ${tgl}
+⏰ *Waktu:* ${jam} WIB
+📍 *Tempat:* ${kegiatan.tempat}
+
+Mari kita persiapkan hati dan diri untuk hadir tepat waktu. Sampai jumpa di lokasi! Tuhan Yesus memberkati! 🙏✨`;
+
+    document.getElementById('wa_pesan_custom').value = template;
+    document.getElementById('waModal').style.display = 'block';
+}
+
+function closeWAModal() {
+    document.getElementById('waModal').style.display = 'none';
+}
+</script>
+
+<style>
+.modal-overlay { display: flex; align-items: flex-start; justify-content: center; }
+</style>
 
 <?php require_once '../includes/admin_footer.php'; ?>

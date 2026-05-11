@@ -20,8 +20,8 @@ include 'includes/header.php';
 <section class="section bg-subtle">
     <div class="container">
         <div class="text-center">
-            <h2 class="section-title">Pendeta Kami</h2>
-            <p class="section-subtitle">Mengenal lebih dekat hamba Tuhan yang melayani dan menggembalakan jemaat HKBP Duren Jaya.</p>
+            <h2 class="section-title">Pendeta</h2>
+            <p class="section-subtitle">Hamba Tuhan yang melayani dan menggembalakan jemaat HKBP Duren Jaya.</p>
         </div>
         
         <div class="grid-2">
@@ -56,7 +56,7 @@ include 'includes/header.php';
     <div class="container">
         <div class="text-center">
             <h2 class="section-title">Badan Pengurus Inti (BPI)</h2>
-            <p class="section-subtitle">Pemuda-pemudi yang dipercaya untuk mengkoordinir pergerakan pelayanan Naposo HKBP Duren Jaya periode ini.</p>
+            <p class="section-subtitle">Periode 2023/2026.</p>
         </div>
         
         <div class="grid-3">
@@ -94,18 +94,18 @@ include 'includes/header.php';
     <div class="container">
         <div class="text-center">
             <h2 class="section-title">Divisi Pelayanan</h2>
-            <p class="section-subtitle">Setiap pemuda bebas berekspresi dan melayani melalui berbagai divisi sesuai dengan talenta yang Tuhan berikan. Klik divisi untuk melihat detail.</p>
+            <p class="section-subtitle">Periode 2023/2026.</p>
         </div>
         
         <div class="grid-4">
             <?php
             // Grouping divisions manually or by distinct names in DB
-            $divisi_list = ['Rohani', 'Padus & Musik', 'Humas', 'Olahraga & Seni'];
+            $divisi_list = ['Rohani', 'Padus & Musik', 'Humas', 'Olahraga'];
             $icons = [
                 'Rohani' => 'fa-bible',
                 'Padus & Musik' => 'fa-music',
                 'Humas' => 'fa-users-rays',
-                'Olahraga & Seni' => 'fa-volleyball'
+                'Olahraga' => 'fa-volleyball'
             ];
 
             foreach ($divisi_list as $div):
@@ -248,7 +248,8 @@ $misi_points = explode("\n", str_replace("\r", "", $misi_text));
 
 .member-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, 220px);
+    justify-content: center;
     gap: 20px;
     margin-bottom: 40px;
 }
@@ -284,7 +285,8 @@ $misi_points = explode("\n", str_replace("\r", "", $misi_text));
 
 .proker-gallery {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, 320px);
+    justify-content: center;
     gap: 20px;
 }
 

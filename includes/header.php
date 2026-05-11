@@ -43,7 +43,55 @@ $is_logged_in = isset($_SESSION['user_id']);
                 <?php else: ?>
                     <a href="auth/login.php" class="btn-primary"><i class="fa-solid fa-user"></i> Login</a>
                 <?php endif; ?>
+                
+                <!-- Mobile Toggle -->
+                <button class="mobile-toggle" id="mobileToggle">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
             </div>
         </nav>
     </div>
 </header>
+
+<!-- Mobile Menu Overlay -->
+<div class="mobile-menu" id="mobileMenu">
+    <div class="mobile-menu-header">
+        <a href="index.php" class="logo">
+            <i class="fa-solid fa-church" style="color: var(--primary);"></i>
+            Naposo HKBP
+        </a>
+        <button id="closeMenu"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <ul class="mobile-nav-links">
+        <li><a href="index.php">Tentang Kami</a></li>
+        <?php if ($is_logged_in): ?>
+            <li><a href="sorotan.php">Sorotan</a></li>
+            <li><a href="info.php">Info</a></li>
+        <?php endif; ?>
+        <li><a href="jejak.php">Jejak</a></li>
+        <li><a href="sejarah.php">Sejarah</a></li>
+        <li style="margin-top: 20px;">
+            <?php if ($is_logged_in): ?>
+                <a href="auth/logout.php?role=user" class="btn-primary" style="width: 100%; text-align: center; background: var(--text-muted);">Logout</a>
+            <?php else: ?>
+                <a href="auth/login.php" class="btn-primary" style="width: 100%; text-align: center;">Login</a>
+            <?php endif; ?>
+        </li>
+    </ul>
+</div>
+
+<script>
+    const mobileToggle = document.getElementById('mobileToggle');
+    const closeMenu = document.getElementById('closeMenu');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    mobileToggle.addEventListener('click', () => {
+        mobileMenu.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    });
+
+    closeMenu.addEventListener('click', () => {
+        mobileMenu.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    });
+</script>

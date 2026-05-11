@@ -12,7 +12,7 @@
         </li>
         <li>
             <a href="kegiatan_warta.php" class="<?= ($current_page == 'kegiatan_warta.php') ? 'active' : '' ?>">
-                <i class="fa-solid fa-calendar-days"></i> Kegiatan & Warta
+                <i class="fa-solid fa-calendar-days"></i> Kelola Info
             </a>
         </li>
         <li>
@@ -36,7 +36,10 @@
 <main class="admin-main">
     <header class="admin-topbar">
         <div class="topbar-title">
-            Panel Manajemen
+            <button id="sidebarToggle" class="sidebar-toggle">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <span>Panel Manajemen</span>
         </div>
         <div class="topbar-right">
             <div class="admin-profile">
@@ -48,3 +51,22 @@
     </header>
     
     <div class="admin-content">
+
+<script>
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.admin-sidebar');
+    const main = document.querySelector('.admin-main');
+
+    sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 768) {
+            if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                sidebar.classList.remove('active');
+            }
+        }
+    });
+</script>

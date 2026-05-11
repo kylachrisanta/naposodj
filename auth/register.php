@@ -14,6 +14,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $wijk = $conn->real_escape_string($_POST['wijk']);
     $angkatan_sidi = $conn->real_escape_string($_POST['angkatan_sidi']);
     $whatsapp = $conn->real_escape_string($_POST['whatsapp']);
+    // Normalisasi nomor WA ke format 628... (Indonesia)
+    $whatsapp = preg_replace('/[^0-9]/', '', $whatsapp); 
+    if (substr($whatsapp, 0, 1) === '0') {
+        $whatsapp = '62' . substr($whatsapp, 1);
+    } elseif (substr($whatsapp, 0, 1) === '8') {
+        $whatsapp = '62' . $whatsapp;
+    }
+    
+    $wa_notification = $conn->real_escape_string($_POST['wa_notification']);
     $email = $conn->real_escape_string($_POST['email']);
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
@@ -31,8 +40,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $role = "pengunjung";
 
-            $sql = "INSERT INTO users (nama, tempat_lahir, tanggal_lahir, alamat, wijk, angkatan_sidi, whatsapp, email, password, role) 
-                    VALUES ('$nama', '$tempat_lahir', '$tanggal_lahir', '$alamat', '$wijk', '$angkatan_sidi', '$whatsapp', '$email', '$hashed_password', '$role')";
+            $sql = "INSERT INTO users (nama, tempat_lahir, tanggal_lahir, alamat, wijk, angkatan_sidi, whatsapp, wa_notification, email, password, role) 
+                    VALUES ('$nama', '$tempat_lahir', '$tanggal_lahir', '$alamat', '$wijk', '$angkatan_sidi', '$whatsapp', '$wa_notification', '$email', '$hashed_password', '$role')";
 
             if ($conn->query($sql) === TRUE) {
                 // Set flash message session
@@ -118,8 +127,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
                 <div class="form-group">
                     <label style="display: block; margin-bottom: 8px; font-weight: 500;">Nomor WhatsApp</label>
-                    <input type="text" name="whatsapp" class="form-control" placeholder="Contoh: 08123456789" required value="<?= isset($_POST['whatsapp']) ? htmlspecialchars($_POST['whatsapp']) : '' ?>">
+                    <input type="text" name="whatsapp" class="form-control" placeholder="Contoh: 628123456789" required value="<?= isset($_POST['whatsapp']) ? htmlspecialchars($_POST['whatsapp']) : '' ?>">
                 </div>
+            </div>
+
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Persetujuan Notifikasi WhatsApp</label>
+                <select name="wa_notification" class="form-control" required>
+                    <option value="aktif" <?= (isset($_POST['wa_notification']) && $_POST['wa_notification'] == 'aktif') ? 'selected' : '' ?>>Aktifkan Notifikasi WA</option>
+                    <option value="nonaktif" <?= (isset($_POST['wa_notification']) && $_POST['wa_notification'] == 'nonaktif') ? 'selected' : '' ?>>Nonaktifkan Notifikasi WA</option>
+                </select>
             </div>
 
             <div class="form-group">

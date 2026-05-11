@@ -267,7 +267,7 @@ while($row = $result->fetch_assoc()) {
 
 <div class="jejak-page">
     <div class="jejak-header">
-        <h1>Jejak Pelayanan & Prestasi</h1>
+        <h1>Jejak Naposo</h1>
         <p style="color: #64748b; font-size: 1.1rem;">Rekam jejak perjalanan Naposo HKBP Duren Jaya dalam melayani dan berkarya.</p>
     </div>
 
