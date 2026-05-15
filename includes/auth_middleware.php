@@ -1,4 +1,7 @@
 <?php
+// Set zona waktu default ke Waktu Indonesia Barat (WIB) untuk konsistensi seluruh sistem
+date_default_timezone_set("Asia/Jakarta");
+
 if (session_status() === PHP_SESSION_NONE) {
     // Set secure session parameters
     ini_set('session.cookie_httponly', 1);

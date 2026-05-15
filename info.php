@@ -7,6 +7,13 @@ if (!isset($_SESSION['user_id'])) {
 }
 // Mengambil config database
 require_once 'config/database.php';
+
+// Ambil status notifikasi user
+$user_id = $_SESSION['user_id'];
+$user_query = $conn->prepare("SELECT wa_notification FROM users WHERE id = ?");
+$user_query->bind_param("i", $user_id);
+$user_query->execute();
+$user_status = $user_query->get_result()->fetch_assoc()['wa_notification'];
 ?>
 <?php include 'includes/header.php'; ?>
 
@@ -21,8 +28,17 @@ require_once 'config/database.php';
 <!-- Jadwal Kegiatan -->
 <section class="section">
     <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
             <h2 style="font-family: var(--font-heading); font-size: 1.75rem;"><i class="fa-regular fa-calendar-check" style="color: var(--primary);"></i> Jadwal Kegiatan Seminggu</h2>
+        </div>
+        
+        <!-- WhatsApp Notification Toggle -->
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px;">
+            <span style="font-size: 1.1rem; color: var(--text-main); font-weight: 500;">Notifikasi WhatsApp</span>
+            <label class="switch">
+                <input type="checkbox" id="waToggle" <?= $user_status === 'aktif' ? 'checked' : '' ?>>
+                <span class="slider round"></span>
+            </label>
         </div>
         
         <div style="overflow-x: auto; background: white; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);">
@@ -91,3 +107,32 @@ require_once 'config/database.php';
 </section>
 
 <?php include 'includes/footer.php'; ?>
+
+<script>
+document.getElementById('waToggle').addEventListener('change', function() {
+    const isChecked = this.checked;
+    const status = isChecked ? 'aktif' : 'nonaktif';
+    
+    fetch('ajax/update_notification.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ wa_notification: status })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            console.log('Notification status updated to ' + data.new_status);
+        } else {
+            alert('Gagal memperbarui status notifikasi: ' + data.message);
+            this.checked = !isChecked; // Revert toggle on failure
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan saat menghubungi server.');
+        this.checked = !isChecked; // Revert toggle on error
+    });
+});
+</script>

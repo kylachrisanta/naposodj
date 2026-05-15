@@ -1,7 +1,7 @@
 <aside class="admin-sidebar">
     <div class="sidebar-header">
         <i class="fa-solid fa-church" style="color: #60a5fa;"></i>
-        <span>Naposo Admin</span>
+        <span>Admin Naposo</span>
     </div>
     
     <ul class="sidebar-menu">
@@ -39,7 +39,6 @@
             <button id="sidebarToggle" class="sidebar-toggle">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <span>Panel Manajemen</span>
         </div>
         <div class="topbar-right">
             <div class="admin-profile">

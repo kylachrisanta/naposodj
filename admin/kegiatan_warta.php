@@ -104,6 +104,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_wa_custom'])) {
     $target_id = (int)$_POST['id_kegiatan'];
     $custom_message = $_POST['pesan_custom'];
     
+    // Cek apakah waktu kegiatan sudah lewat (expired)
+    $check_res = $conn->query("SELECT tanggal FROM kegiatan WHERE id = $target_id");
+    if ($check_res->num_rows > 0) {
+        $kegiatan = $check_res->fetch_assoc();
+        $waktu_kegiatan = strtotime($kegiatan['tanggal']);
+        $waktu_sekarang = time(); // Sudah berbasis Asia/Jakarta karena set di database.php
+
+        if ($waktu_kegiatan < $waktu_sekarang) {
+            $_SESSION['admin_flash'] = "<div style='color: #b91c1c; background: #fee2e2; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #fecaca;'><i class='fa-solid fa-circle-exclamation'></i> Pengingat tidak dapat dikirim karena jadwal kegiatan telah lewat.</div>";
+            header("Location: kegiatan_warta.php");
+            exit();
+        }
+    }
+    
     // Sertakan script pengiriman (script ini sudah mendukung $target_id dan $custom_message)
     ob_start();
     include '../cron/send_wa_notifications.php';
@@ -197,10 +211,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_wa_custom'])) {
                     <?php
                     $result = $conn->query("SELECT * FROM kegiatan ORDER BY tanggal DESC");
                     while($row = $result->fetch_assoc()):
+                        $is_expired = strtotime($row['tanggal']) < time();
                     ?>
-                    <tr style="border-bottom: 1px solid var(--border-color);">
+                    <tr style="border-bottom: 1px solid var(--border-color); <?= $is_expired ? 'background: #fafafa;' : '' ?>">
                         <td style="padding: 15px 20px; vertical-align: top;">
-                            <strong style="display: block; margin-bottom: 4px;"><?= htmlspecialchars($row['nama_kegiatan']) ?></strong>
+                            <strong style="display: block; margin-bottom: 4px;">
+                                <?= htmlspecialchars($row['nama_kegiatan']) ?>
+                                <?php if($is_expired): ?>
+                                    <span style="font-size: 0.7rem; background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight: 600; text-transform: uppercase;">Selesai</span>
+                                <?php endif; ?>
+                            </strong>
                             <span style="font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-user-tie" style="margin-right:4px;"></i><?= htmlspecialchars($row['penanggung_jawab']) ?></span>
                         </td>
                         <td style="padding: 15px 20px; color: var(--text-muted); font-size: 0.9rem; vertical-align: top;">
@@ -208,7 +228,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_wa_custom'])) {
                             <div><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i><?= htmlspecialchars($row['tempat']) ?></div>
                         </td>
                         <td style="padding: 15px 20px; vertical-align: top; white-space: nowrap;">
-                            <button onclick='openWAModal(<?= json_encode($row) ?>)' style="color: #059669; margin-right: 15px; background: none; border: none; cursor: pointer; padding: 0; font-size: inherit; font-family: inherit;" title="Luncurkan WA"><i class="fa-solid fa-paper-plane"></i> Luncurkan</button>
+                            <?php if ($is_expired): ?>
+                                <button onclick="alert('Pengingat tidak dapat dikirim karena jadwal kegiatan telah lewat.')" style="color: #94a3b8; margin-right: 15px; background: none; border: none; cursor: pointer; padding: 0; font-size: inherit; font-family: inherit;" title="Jadwal telah lewat">
+                                    <i class="fa-solid fa-paper-plane"></i> Luncurkan
+                                </button>
+                            <?php else: ?>
+                                <button onclick='openWAModal(<?= json_encode($row) ?>)' style="color: #059669; margin-right: 15px; background: none; border: none; cursor: pointer; padding: 0; font-size: inherit; font-family: inherit;" title="Luncurkan WA">
+                                    <i class="fa-solid fa-paper-plane"></i> Luncurkan
+                                </button>
+                            <?php endif; ?>
                             <a href="kegiatan_warta.php?edit_kegiatan=<?= $row['id'] ?>" style="color: var(--accent); margin-right: 15px;" title="Edit"><i class="fa-solid fa-pen-to-square"></i></a>
                             <a href="kegiatan_warta.php?delete_kegiatan=<?= $row['id'] ?>" onclick="return confirm('Yakin ingin menghapus jadwal ini?');" style="color: #b91c1c;" title="Hapus"><i class="fa-solid fa-trash"></i></a>
                         </td>
