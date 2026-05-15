@@ -313,7 +313,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_wa_custom'])) {
                 <label style="display: block; margin-bottom: 8px; font-weight: 500;">Isi Pesan WhatsApp</label>
                 <textarea name="pesan_custom" id="wa_pesan_custom" rows="12" required style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-family: var(--font-body); font-size: 0.95rem; line-height: 1.5;"></textarea>
                 <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">
-                    <i class="fa-solid fa-circle-info"></i> Pesan di atas adalah template otomatis. Anda dapat mengubah salam, ajakan, atau informasi tambahan lainnya.
+                    <i class="fa-solid fa-circle-info"></i> Gunakan <b>{nama}</b> untuk memanggil nama penerima secara otomatis.
                 </p>
             </div>
 
@@ -340,7 +340,7 @@ function openWAModal(kegiatan) {
     document.getElementById('wa_display_waktu').innerText = tgl + ', ' + jam + ' WIB';
     document.getElementById('wa_display_tempat').innerText = kegiatan.tempat;
 
-    let template = `Halo! 
+    let template = `Halo *{nama}*! 
 
 Ada kegiatan seru nih di Naposo HKBP Duren Jaya! Mari kita luangkan waktu untuk berkumpul bersama.
 

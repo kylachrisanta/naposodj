@@ -69,18 +69,21 @@ if ($res_kegiatan->num_rows > 0) {
             $res_check = $conn->query($sql_check);
 
             if ($res_check->num_rows == 0) {
-                // Gunakan pesan custom jika tersedia, jika tidak gunakan template default
+                // Ambil pesan dasar (custom atau default)
                 if (isset($custom_message) && !empty($custom_message)) {
                     $pesan = $custom_message;
                 } else {
                     // Format Pesan Default
-                    $pesan = "Halo *$nama_user*,\n\nAda kegiatan seru nih di Naposo HKBP Duren Jaya!\n\n";
+                    $pesan = "Halo *{nama}*,\n\nAda kegiatan seru nih di Naposo HKBP Duren Jaya!\n\n";
                     $pesan .= "📌 *Kegiatan:* $nama_kegiatan\n";
                     $pesan .= "📅 *Tanggal:* $tgl_formatted\n";
                     $pesan .= "⏰ *Waktu:* $jam_formatted WIB\n";
                     $pesan .= "📍 *Tempat:* $tempat\n\n";
                     $pesan .= "Jangan lupa hadir ya! Mari kita berkumpul dan bertumbuh bersama. Tuhan Yesus memberkati! 🙏✨";
                 }
+
+                // Ganti placeholder {nama} dengan nama user sebenarnya
+                $pesan = str_replace('{nama}', $nama_user, $pesan);
 
                 // 4. Kirim WA
                 $response = sendWhatsApp($nomor_wa, $pesan);

@@ -260,12 +260,66 @@ while($row = $result->fetch_assoc()) {
         font-size: 1.5rem;
         margin-bottom: 10px;
     }
+    .search-container {
+        max-width: 300px;
+        margin: 30px auto 0;
+        position: relative;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 20px 12px 45px;
+        border-radius: 999px;
+        border: 2px solid #e2e8f0;
+        background: white;
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1rem;
+    }
+
+    /* Animation for sections */
+    .year-section {
+        transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .section-hidden {
+        display: none;
+        opacity: 0;
+        transform: translateY(20px);
+    }
 </style>
 
 <div class="sorotan-page">
     <div class="sorotan-header">
         <h1>Sorotan Naposo</h1>
         <p style="color: #64748b; font-size: 1.1rem;">Rekap kegiatan Naposo pertahun.</p>
+        
+        <div class="search-container">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="yearSearch" class="search-input" placeholder="Cari tahun (contoh: 2024)" maxlength="4">
+        </div>
+    </div>
+
+    <!-- Empty search result state -->
+    <div id="searchEmptyState" class="text-center" style="display: none; padding: 100px 0;">
+        <i class="fa-solid fa-calendar-xmark" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 20px;"></i>
+        <p style="color: #64748b;">Tidak ada sorotan di tahun tersebut.</p>
     </div>
 
     <?php if(empty($sorotan_by_year)): ?>
@@ -343,6 +397,8 @@ while($row = $result->fetch_assoc()) {
             loop: false,
             centeredSlides: false,
             grabCursor: true,
+            observer: true,
+            observeParents: true,
             pagination: {
                 el: el.querySelector('.swiper-pagination'),
                 clickable: true,
@@ -390,6 +446,45 @@ while($row = $result->fetch_assoc()) {
         document.body.style.overflow = 'auto';
         document.getElementById('lightboxMedia').innerHTML = '';
     }
+
+    // Search Filtering Logic
+    const searchInput = document.getElementById('yearSearch');
+    const sections = document.querySelectorAll('.year-section');
+    const emptyState = document.getElementById('searchEmptyState');
+    const originalEmptyState = document.querySelector('.text-center:not(#searchEmptyState)');
+
+    searchInput.addEventListener('input', function(e) {
+        // Hanya izinkan angka
+        this.value = this.value.replace(/[^0-9]/g, '');
+        
+        const query = this.value.trim();
+        let foundAny = false;
+
+        sections.forEach(section => {
+            const yearTitle = section.querySelector('.year-title').textContent.toLowerCase();
+            if (yearTitle.includes(query)) {
+                section.style.display = 'block';
+                setTimeout(() => {
+                    section.style.opacity = '1';
+                    section.style.transform = 'translateY(0)';
+                }, 10);
+                foundAny = true;
+            } else {
+                section.style.display = 'none';
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(20px)';
+            }
+        });
+
+        // Toggle empty states
+        if (!foundAny && query !== '') {
+            emptyState.style.display = 'block';
+            if(originalEmptyState) originalEmptyState.style.display = 'none';
+        } else {
+            emptyState.style.display = 'none';
+            if(originalEmptyState && sections.length === 0) originalEmptyState.style.display = 'block';
+        }
+    });
 </script>
 
 <?php include 'includes/footer.php'; ?>
