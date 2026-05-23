@@ -80,7 +80,7 @@ $user_status = $user_query->get_result()->fetch_assoc()['wa_notification'];
 <!-- Warta Pengumuman -->
 <section class="section bg-subtle">
     <div class="container">
-        <h2 style="font-family: var(--font-heading); font-size: 1.75rem; margin-bottom: 20px;"><i class="fa-solid fa-bullhorn" style="color: var(--accent);"></i> Pengumuman</h2>
+        <h2 style="font-family: var(--font-heading); font-size: 1.75rem; margin-bottom: 20px;"><i class="fa-solid fa-bullhorn" style="color: var(--accent);"></i> Warta</h2>
         
         <div style="display: flex; flex-direction: column; gap: 15px;">
             <?php

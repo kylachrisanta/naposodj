@@ -142,7 +142,7 @@ if (isset($_GET['edit'])) {
 <div id="detailModal" class="modal-overlay" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; backdrop-filter: blur(4px);">
     <div style="background: white; max-width: 500px; width: 90%; margin: 100px auto; border-radius: var(--radius-md); padding: 30px; position: relative; box-shadow: var(--shadow-lg);">
         <span onclick="closeModal()" style="position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-muted);">&times;</span>
-        <h3 style="margin-bottom: 25px; border-bottom: 2px solid var(--bg-subtle); padding-bottom: 10px; color: var(--primary);">Detail Profil Anggota</h3>
+        <h3 style="margin-bottom: 25px; border-bottom: 2px solid var(--bg-subtle); padding-bottom: 10px; color: var(--primary);">Detail Profil Naposo</h3>
         <div id="detailContent"></div>
     </div>
 </div>

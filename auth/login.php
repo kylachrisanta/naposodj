@@ -52,7 +52,8 @@ require_once dirname(__FILE__) . '/../includes/auth_middleware.php';
         </form>
         
         <div style="margin-top: 20px; font-size: 0.95rem; color: var(--text-muted);">
-            Belum punya akun? <a href="register.php" style="color: var(--primary); font-weight: 500;">Daftar di sini</a>
+            Belum punya akun? <a href="register.php" style="color: var(--primary); font-weight: 500;">Daftar di sini</a><br>
+            Lupa Password? <a href="forgot_password.php" style="color: var(--primary); font-weight: 500;">Reset di sini</a>
         </div>
         <div style="margin-top: 20px; font-size: 0.9rem;">
             <a href="../index.php" style="color: var(--text-muted);"><i class="fa-solid fa-arrow-left"></i> Kembali ke Beranda</a>
