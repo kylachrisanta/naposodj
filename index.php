@@ -2,6 +2,8 @@
 require_once 'config/database.php';
 include 'includes/header.php'; 
 ?>
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 
 <!-- Hero Section -->
 <section class="hero">
@@ -10,412 +12,166 @@ include 'includes/header.php';
     <div class="container hero-content">
         <h1 class="hero-title">Naposo HKBP Duren Jaya</h1>
         <p class="hero-subtitle">Membangun persekutuan yang berakar dalam Kristus dan berbuah bagi sesama. Mari bertumbuh bersama dalam iman, pengharapan, dan kasih.</p>
-        <div class="hero-buttons">
-            <a href="#lokasi" class="btn-primary">Lihat Lokasi Kami</a>
-        </div>
     </div>
 </section>
 
-<!-- Pendeta Section -->
-<section class="section bg-subtle">
+<!-- Welcome Marquee Section -->
+<div class="sh-marquee-container" id="heroMarquee" onclick="this.classList.toggle('paused')" title="Klik untuk berhenti / lanjutkan">
+    <div class="sh-marquee-track">
+        <?php 
+        $items = ['SELAMAT DATANG DI NAPOSO HKBP DUREN JAYA!'];
+        $all = array_fill(0, 10, $items[0]);
+        foreach ($all as $item): 
+        ?>
+            <span class="sh-marquee-item"><?= htmlspecialchars($item) ?></span>
+            <span class="sh-marquee-bullet" style="color: var(--accent); font-size: 1.3rem; margin: 0 1.5rem; flex-shrink: 0;">•</span>
+        <?php endforeach; ?>
+    </div>
+</div>
+
+<!-- Galeri Kegiatan Beranda Section -->
+<section class="section bg-subtle" id="galeri-kegiatan" style="padding-bottom: 80px; overflow-x: hidden;">
     <div class="container">
-        <div class="text-center">
-            <h2 class="section-title">Pendeta</h2>
-            <p class="section-subtitle">Hamba Tuhan yang melayani dan menggembalakan jemaat HKBP Duren Jaya.</p>
+        <div class="text-center" style="margin-bottom: 40px;">
+            <h2 class="section-title">Kegiatan Kami</h2>
+            <p class="section-subtitle" style="margin-bottom: 0;">Berikut adalah beberapa keseruan Naposo HKBP Duren Jaya! :)</p>
         </div>
-        
-        <div class="grid-2">
-            <?php
-            $res_pendeta = $conn->query("SELECT * FROM pengurus WHERE kategori = 'Pendeta' ORDER BY id ASC");
-            if($res_pendeta->num_rows > 0):
-                while($row = $res_pendeta->fetch_assoc()):
+    </div>
+    
+    <!-- Swiper Carousel outside container for full-width edge-to-edge layout -->
+    <div class="swiper berandaSwiper" style="width: 100%; padding: 20px 50px 60px !important;">
+        <div class="swiper-wrapper">
+            <?php 
+            $res_fotos = $conn->query("SELECT * FROM beranda_foto ORDER BY id DESC");
+            if($res_fotos->num_rows > 0):
+                while($row_foto = $res_fotos->fetch_assoc()):
             ?>
-            <div class="card">
-                <?php if($row['foto']): ?>
-                    <img src="assets/img/pengurus/<?= $row['foto'] ?>" alt="<?= htmlspecialchars($row['nama']) ?>" class="card-img" style="object-fit: cover; height: 350px;">
-                <?php else: ?>
-                    <div class="card-img" style="height: 350px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
-                        <i class="fa-solid fa-user-tie fa-5x"></i>
+            <div class="swiper-slide" style="height: auto; display: flex; justify-content: center;">
+                <div class="card" style="width: 100%; max-width: 380px; border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-md); transition: all 0.4s; border: 1px solid var(--border-color); background: white;">
+                    <div style="width: 100%; height: 260px; overflow: hidden; position: relative;">
+                        <img src="assets/img/beranda/<?= htmlspecialchars($row_foto['file_foto']) ?>" alt="<?= htmlspecialchars($row_foto['caption']) ?>" class="card-img" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;">
                     </div>
-                <?php endif; ?>
-                <div class="card-body">
-                    <h3 class="card-title"><?= htmlspecialchars($row['nama']) ?></h3>
-                    <div class="card-role"><?= htmlspecialchars($row['jabatan']) ?></div>
-                    <p class="card-text"><?= nl2br(htmlspecialchars($row['deskripsi'])) ?></p>
+                    <div class="card-body" style="padding: 25px; text-align: left;">
+                        <h3 class="card-title" style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin-bottom: 0; line-height: 1.4;"><?= htmlspecialchars($row_foto['caption']) ?></h3>
+                    </div>
                 </div>
             </div>
-            <?php endwhile; else: ?>
-            <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px; background: white; border-radius: var(--radius-md);">Data profil pendeta belum tersedia di database.</div>
-            <?php endif; ?>
-        </div>
-    </div>
-</section>
-
-<!-- BPI Section -->
-<section class="section">
-    <div class="container">
-        <div class="text-center">
-            <h2 class="section-title">Badan Pengurus Inti (BPI)</h2>
-            <p class="section-subtitle">Periode 2023/2026.</p>
-        </div>
-        
-        <div class="grid-3">
-            <?php
-            $res_bpi = $conn->query("SELECT * FROM pengurus WHERE kategori = 'BPI' ORDER BY id ASC");
-            if($res_bpi->num_rows > 0):
-                while($row = $res_bpi->fetch_assoc()):
+            <?php 
+                endwhile; 
+            else: 
             ?>
-            <div class="card">
-                <?php if($row['foto']): ?>
-                    <img src="assets/img/pengurus/<?= $row['foto'] ?>" alt="<?= htmlspecialchars($row['nama']) ?>" class="card-img" style="object-fit: cover; height: 300px;">
-                <?php else: ?>
-                    <div class="card-img" style="height: 300px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
-                        <i class="fa-solid fa-user fa-5x"></i>
-                    </div>
-                <?php endif; ?>
-                <div class="card-body text-center">
-                    <h3 class="card-title"><?= htmlspecialchars($row['nama']) ?></h3>
-                    <div class="card-role"><?= htmlspecialchars($row['jabatan']) ?></div>
-                    <?php if($row['deskripsi']): ?>
-                        <p class="card-text" style="font-size: 0.85rem; margin-top: 10px;"><?= htmlspecialchars($row['deskripsi']) ?></p>
-                    <?php endif; ?>
-                </div>
-            </div>
-            <?php endwhile; else: ?>
-            <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px; background: var(--bg-subtle); border-radius: var(--radius-md);">Data BPI belum tersedia di database.</div>
+            <div style="width: 100%; text-align: center; color: var(--text-muted); padding: 40px;">Belum ada foto kegiatan di Beranda.</div>
             <?php endif; ?>
         </div>
+        
+        <!-- Navigation Buttons -->
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
+        
+        <!-- Pagination -->
+        <div class="swiper-pagination"></div>
     </div>
 </section>
 
-<!-- Program Kerja & Divisi Section -->
-<!-- Divisi Section -->
-<section class="section bg-subtle" id="divisi-section">
-    <div class="container">
-        <div class="text-center">
-            <h2 class="section-title">Divisi Pelayanan</h2>
-            <p class="section-subtitle">Periode 2023/2026.</p>
-        </div>
-        
-        <div class="grid-4">
-            <?php
-            // Grouping divisions manually or by distinct names in DB
-            $divisi_list = ['Rohani', 'Padus & Musik', 'Humas', 'Olahraga'];
-            $icons = [
-                'Rohani' => 'fa-bible',
-                'Padus & Musik' => 'fa-music',
-                'Humas' => 'fa-users-rays',
-                'Olahraga' => 'fa-volleyball'
+<!-- Activities Marquee Section -->
+<section class="activity-marquee-section">
+    <!-- Row 1: Leftwards -->
+    <div class="act-marquee-container" title="Klik untuk berhenti / lanjutkan">
+        <div class="act-marquee-track track-left">
+            <?php 
+            $activities = [
+                ['name' => 'KEBAKTIAN PADANG', 'class' => 'badge-indigo'],
+                ['name' => 'RET-RET', 'class' => 'badge-rose'],
+                ['name' => 'BADMINTON', 'class' => 'badge-emerald'],
+                ['name' => 'BASKET', 'class' => 'badge-amber'],
+                ['name' => 'FUTSAL', 'class' => 'badge-sky'],
+                ['name' => 'LATIHAN KOOR', 'class' => 'badge-purple'],
+                ['name' => 'PENDALAMAN ALKITAB', 'class' => 'badge-indigo'],
+                ['name' => 'NONTON BIOSKOP', 'class' => 'badge-rose'],
+                ['name' => 'NATAL', 'class' => 'badge-emerald']
             ];
-
-            foreach ($divisi_list as $div):
+            
+            // Repeat array 4 times for width coverage
+            $row1_items = array_merge($activities, $activities, $activities, $activities);
+            foreach ($row1_items as $item): 
             ?>
-            <div class="card proker-card division-card" onclick="openDivisionModal('<?= $div ?>')" style="cursor: pointer;">
-                <div class="proker-icon">
-                    <i class="fa-solid <?= $icons[$div] ?>"></i>
-                </div>
-                <h3 class="card-title"><?= $div ?></h3>
-                <p class="card-text" style="font-size: 0.85rem;">Klik untuk melihat pengurus dan program kerja.</p>
-            </div>
+                <span class="act-badge <?= $item['class'] ?>"><?= htmlspecialchars($item['name']) ?></span>
+            <?php endforeach; ?>
+            <?php foreach ($row1_items as $item): ?>
+                <span class="act-badge <?= $item['class'] ?>"><?= htmlspecialchars($item['name']) ?></span>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    
+    <!-- Row 2: Rightwards -->
+    <div class="act-marquee-container" title="Klik untuk berhenti / lanjutkan">
+        <div class="act-marquee-track track-right">
+            <?php 
+            $activities_rev = array_reverse($activities);
+            $row2_items = array_merge($activities_rev, $activities_rev, $activities_rev, $activities_rev);
+            foreach ($row2_items as $item): 
+            ?>
+                <span class="act-badge <?= $item['class'] ?>"><?= htmlspecialchars($item['name']) ?></span>
+            <?php endforeach; ?>
+            <?php foreach ($row2_items as $item): ?>
+                <span class="act-badge <?= $item['class'] ?>"><?= htmlspecialchars($item['name']) ?></span>
             <?php endforeach; ?>
         </div>
     </div>
 </section>
 
-<?php
-// Fetch Visi & Misi from DB
-$res_settings = $conn->query("SELECT * FROM settings WHERE key_name IN ('visi', 'misi')");
-$site_settings = [];
-while($s_row = $res_settings->fetch_assoc()) {
-    $site_settings[$s_row['key_name']] = $s_row['value_text'];
-}
-$visi_text = $site_settings['visi'] ?? 'Visi belum diatur.';
-$misi_text = $site_settings['misi'] ?? 'Misi belum diatur.';
-$misi_points = explode("\n", str_replace("\r", "", $misi_text));
-?>
-<!-- Visi & Misi Section -->
-<section class="section">
-    <div class="container">
-        <div class="grid-2" style="align-items: center; gap: 60px;">
-            <div class="visi-misi-content">
-                <h2 class="section-title" style="text-align: left; margin-bottom: 30px;">Visi & Misi Kami</h2>
-                <div style="margin-bottom: 25px;">
-                    <h3 style="color: var(--primary); margin-bottom: 10px; font-size: 1.4rem;"><i class="fa-solid fa-eye"></i> Visi</h3>
-                    <p style="font-size: 1.1rem; color: var(--text-main);"><?= nl2br(htmlspecialchars($visi_text)) ?></p>
-                </div>
-                <div style="margin-bottom: 40px;">
-                    <h3 style="color: var(--primary); margin-bottom: 10px; font-size: 1.4rem;"><i class="fa-solid fa-bullseye"></i> Misi</h3>
-                    <ul style="list-style: none; padding: 0;">
-                        <?php foreach($misi_points as $point): if(trim($point) == '') continue; ?>
-                        <li style="margin-bottom: 15px; display: flex; gap: 12px; align-items: flex-start;">
-                            <i class="fa-solid fa-check-circle" style="color: var(--accent); margin-top: 6px; font-size: 1.1rem;"></i>
-                            <span style="font-size: 1.05rem;"><?= htmlspecialchars(trim($point)) ?></span>
-                        </li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
-                <a href="auth/register.php" class="btn-primary" style="background: var(--gradient-accent); padding: 18px 45px; font-size: 1.1rem; border-radius: 50px; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 10px 20px -5px rgba(244, 63, 94, 0.4);">
-                    <i class="fa-solid fa-user-plus"></i> Gabung Sekarang
-                </a>
-            </div>
-            <div class="visi-misi-image">
-                <div style="position: relative;">
-                    <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80" alt="Visi Misi" style="border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 100%; height: auto;">
-                    <div style="position: absolute; z-index: -1; top: -20px; right: -20px; width: 100%; height: 100%; border: 4px solid var(--accent); border-radius: var(--radius-lg);"></div>
-                </div>
-            </div>
+<!-- Selamat Datang Section -->
+<section class="section" id="selamat-datang">
+    <div class="container" style="max-width: 800px; text-align: center;">
+        <div class="welcome-content">
+            <h2 class="section-title" style="margin-bottom: 30px;">Syalom!</h2>
+            <p style="font-size: 1.15rem; color: var(--text-main); margin-bottom: 20px; line-height: 1.8; font-weight: 500;">
+                Yuk, bergabung dengan persekutuan Naposo HKBP Duren Jaya.
+            </p>
+            <p style="color: var(--text-muted); font-size: 1.1rem; line-height: 1.8; margin-bottom: 0;">
+                Di sini kita bisa seru-seruan bareng, menambah teman, ikut berbagai kegiatan, dan bertumbuh bersama di dalam kasih Tuhan. Bersama kita belajar, melayani, dan menciptakan banyak momen yang menyenangkan.
+            </p>
         </div>
     </div>
 </section>
 
-<!-- Division Detail Modal -->
-<div id="divisionModal" class="modal">
-    <div class="modal-content">
-        <span class="close-modal" onclick="closeDivisionModal()">&times;</span>
-        <div id="modal-body">
-            <!-- Content injected by JS -->
-        </div>
-    </div>
-</div>
-
-<style>
-/* Modal Styles */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 2000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.6);
-    backdrop-filter: blur(5px);
-    padding-top: 60px;
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 5% auto;
-    padding: 40px;
-    border: none;
-    width: 80%;
-    max-width: 1000px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    position: relative;
-    animation: slideIn 0.4s ease-out;
-}
-
-@keyframes slideIn {
-    from { transform: translateY(-30px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-.close-modal {
-    color: #aaa;
-    position: absolute;
-    top: 20px;
-    right: 30px;
-    font-size: 35px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.close-modal:hover {
-    color: var(--text-main);
-}
-
-.modal-section-title {
-    font-size: 1.8rem;
-    color: var(--text-main);
-    margin-bottom: 40px;
-    border-bottom: 3px solid var(--primary);
-    display: block;
-    width: fit-content;
-    margin-left: auto;
-    margin-right: auto;
-    padding-bottom: 5px;
-    text-align: center;
-}
-
-.modal-content h3 {
-    text-align: center;
-    margin-bottom: 25px;
-    font-weight: 700;
-}
-
-.member-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, 220px);
-    justify-content: center;
-    gap: 20px;
-    margin-bottom: 40px;
-}
-
-.member-item {
-    text-align: center;
-    background: var(--bg-subtle);
-    padding: 0;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-color);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.member-photo {
-    width: 100%;
-    height: 220px;
-    object-fit: cover;
-    margin-bottom: 0;
-    border: none;
-    box-shadow: none;
-    border-radius: 0;
-}
-
-.member-info {
-    padding: 15px;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.proker-gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, 320px);
-    justify-content: center;
-    gap: 20px;
-}
-
-.proker-item {
-    position: relative;
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    height: 200px;
-}
-
-.proker-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: 0.5s;
-}
-
-.proker-item:hover img {
-    transform: scale(1.1);
-}
-
-.proker-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(transparent, rgba(0,0,0,0.8));
-    color: white;
-    padding: 15px;
-    font-size: 0.9rem;
-}
-</style>
-
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
-// Data structure for divisions
-const divisionData = {
-    <?php
-    foreach ($divisi_list as $div) {
-        echo "'$div': {";
-        
-        // Fetch members
-        echo "members: [";
-        $stmt = $conn->prepare("SELECT * FROM pengurus WHERE kategori = 'Divisi' AND divisi = ? ORDER BY urutan ASC");
-        $stmt->bind_param("s", $div);
-        $stmt->execute();
-        $res_members = $stmt->get_result();
-        while($m = $res_members->fetch_assoc()) {
-            $photo = $m['foto'] ? 'assets/img/pengurus/' . $m['foto'] : 'https://ui-avatars.com/api/?name=' . urlencode($m['nama']) . '&background=random';
-            echo "{nama: '" . addslashes($m['nama']) . "', jabatan: '" . addslashes($m['jabatan']) . "', deskripsi: '" . addslashes($m['deskripsi']) . "', foto: '$photo'},";
-        }
-        echo "],";
-        
-        // Fetch program kerja from sorotan
-        echo "programs: [";
-        $stmt_p = $conn->prepare("SELECT * FROM sorotan WHERE divisi = ? ORDER BY tanggal_kegiatan DESC");
-        $stmt_p->bind_param("s", $div);
-        $stmt_p->execute();
-        $res_proker = $stmt_p->get_result();
-        while($p = $res_proker->fetch_assoc()) {
-            echo "{judul: '" . addslashes($p['judul']) . "', foto: 'assets/img/sorotan/" . $p['file_media'] . "'},";
-        }
-        echo "]";
-        
-        echo "},";
-    }
-    ?>
-};
-
-function openDivisionModal(divName) {
-    const data = divisionData[divName];
-    if (!data) return;
-
-    let html = `<h2 class="modal-section-title">Divisi ${divName}</h2>`;
-    
-    // Render Members
-    html += `<h3>Pengurus Divisi</h3>`;
-    if (data.members.length > 0) {
-        html += `<div class="member-grid">`;
-        data.members.forEach(m => {
-            html += `
-                <div class="member-item">
-                    <img src="${m.foto}" class="member-photo" alt="${m.nama}">
-                    <div class="member-info">
-                        <div style="font-weight: 700; color: var(--text-main); font-size: 1.1rem;">${m.nama}</div>
-                        <div style="font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-bottom: 8px;">${m.jabatan}</div>
-                        <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">${m.deskripsi}</div>
-                    </div>
-                </div>
-            `;
+    document.addEventListener('DOMContentLoaded', function() {
+        new Swiper('.berandaSwiper', {
+            slidesPerView: 1,
+            spaceBetween: 30,
+            loop: false,
+            grabCursor: true,
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            breakpoints: {
+                640: {
+                    slidesPerView: 2,
+                },
+                1024: {
+                    slidesPerView: 3,
+                },
+                1440: {
+                    slidesPerView: 4,
+                },
+            }
         });
-        html += `</div>`;
-    } else {
-        html += `<p style="color: #666; margin-bottom: 30px;">Belum ada data pengurus untuk divisi ini.</p>`;
-    }
 
-    // Render Programs
-    html += `<h3>Program Kerja & Dokumentasi</h3>`;
-    if (data.programs.length > 0) {
-        html += `<div class="proker-gallery">`;
-        data.programs.forEach(p => {
-            html += `
-                <div class="proker-item">
-                    <img src="${p.foto}" alt="${p.judul}">
-                    <div class="proker-overlay">${p.judul}</div>
-                </div>
-            `;
+        // Click-to-pause event listener for activities marquee
+        const marqueeContainers = document.querySelectorAll('.act-marquee-container');
+        marqueeContainers.forEach(container => {
+            container.addEventListener('click', () => {
+                container.classList.toggle('paused');
+            });
         });
-        html += `</div>`;
-    } else {
-        html += `<p style="color: #666;">Belum ada data program kerja untuk divisi ini.</p>`;
-    }
-
-    document.getElementById('modal-body').innerHTML = html;
-    document.getElementById('divisionModal').style.display = 'block';
-    document.body.style.overflow = 'hidden'; // Prevent background scroll
-}
-
-function closeDivisionModal() {
-    document.getElementById('divisionModal').style.display = 'none';
-    document.body.style.overflow = 'auto';
-}
-
-// Close on click outside
-window.onclick = function(event) {
-    const modal = document.getElementById('divisionModal');
-    if (event.target == modal) {
-        closeDivisionModal();
-    }
-}
+    });
 </script>
-
 <?php include 'includes/footer.php'; ?>

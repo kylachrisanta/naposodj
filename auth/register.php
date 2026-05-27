@@ -8,6 +8,8 @@ $success = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     verify_csrf_token($_POST['csrf_token'] ?? '');
     $nama = $conn->real_escape_string($_POST['nama']);
+    $nama_panggilan = $conn->real_escape_string(trim($_POST['nama_panggilan']));
+    $jenis_kelamin = $conn->real_escape_string($_POST['jenis_kelamin']);
     $tempat_lahir = $conn->real_escape_string($_POST['tempat_lahir']);
     $tanggal_lahir = $conn->real_escape_string($_POST['tanggal_lahir']);
     $alamat = $conn->real_escape_string($_POST['alamat']);
@@ -27,8 +29,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
 
-    // Cek apakah password cocok
-    if ($password !== $confirm_password) {
+    // Hitung umur
+    $birthdate = new DateTime($tanggal_lahir);
+    $today = new DateTime();
+    $age = $today->diff($birthdate)->y;
+
+    // Validasi form di backend
+    if (empty($nama_panggilan)) {
+        $error = "Nama Panggilan wajib diisi!";
+    } elseif (strlen($nama_panggilan) > 50) {
+        $error = "Nama Panggilan maksimal 50 karakter!";
+    } elseif (!in_array($jenis_kelamin, ['Laki-laki', 'Perempuan'])) {
+        $error = "Pilihlah Jenis Kelamin yang valid!";
+    } elseif ($age < 18 || $age > 32) {
+        $error = "Pendaftaran hanya diperbolehkan untuk pengguna berusia 18–32 tahun.";
+    } elseif ($password !== $confirm_password) {
         $error = "Password dan Konfirmasi Password tidak cocok!";
     } else {
         // Cek email apakah sudah terdaftar
@@ -40,8 +55,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $role = "pengunjung";
 
-            $sql = "INSERT INTO users (nama, tempat_lahir, tanggal_lahir, alamat, wijk, angkatan_sidi, whatsapp, wa_notification, email, password, role) 
-                    VALUES ('$nama', '$tempat_lahir', '$tanggal_lahir', '$alamat', '$wijk', '$angkatan_sidi', '$whatsapp', '$wa_notification', '$email', '$hashed_password', '$role')";
+            $sql = "INSERT INTO users (nama, nama_panggilan, jenis_kelamin, tempat_lahir, tanggal_lahir, alamat, wijk, angkatan_sidi, whatsapp, wa_notification, email, password, role) 
+                    VALUES ('$nama', '$nama_panggilan', '$jenis_kelamin', '$tempat_lahir', '$tanggal_lahir', '$alamat', '$wijk', '$angkatan_sidi', '$whatsapp', '$wa_notification', '$email', '$hashed_password', '$role')";
 
             if ($conn->query($sql) === TRUE) {
                 // Set flash message session
@@ -88,9 +103,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         <form action="" method="POST">
             <input type="hidden" name="csrf_token" value="<?= get_csrf_token() ?>">
-            <div class="form-group">
-                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Nama Lengkap</label>
-                <input type="text" name="nama" class="form-control" required value="<?= isset($_POST['nama']) ? htmlspecialchars($_POST['nama']) : '' ?>">
+            <div class="grid-2-form">
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Nama Lengkap</label>
+                    <input type="text" name="nama" class="form-control" required value="<?= isset($_POST['nama']) ? htmlspecialchars($_POST['nama']) : '' ?>">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Nama Panggilan</label>
+                    <input type="text" name="nama_panggilan" class="form-control" required maxlength="50" placeholder="Contoh: Budi" value="<?= isset($_POST['nama_panggilan']) ? htmlspecialchars($_POST['nama_panggilan']) : '' ?>">
+                </div>
             </div>
 
             <div class="grid-2-form">
@@ -100,7 +121,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
                 <div class="form-group">
                     <label style="display: block; margin-bottom: 8px; font-weight: 500;">Tanggal Lahir</label>
-                    <input type="date" name="tanggal_lahir" class="form-control" required value="<?= isset($_POST['tanggal_lahir']) ? htmlspecialchars($_POST['tanggal_lahir']) : '' ?>">
+                    <input type="date" name="tanggal_lahir" id="tanggal_lahir" class="form-control" required 
+                           min="<?= date('Y-m-d', strtotime('-32 years')) ?>" 
+                           max="<?= date('Y-m-d', strtotime('-18 years')) ?>" 
+                           value="<?= isset($_POST['tanggal_lahir']) ? htmlspecialchars($_POST['tanggal_lahir']) : '' ?>">
                 </div>
             </div>
 
@@ -131,12 +155,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
             </div>
 
-            <div class="form-group">
-                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Persetujuan Notifikasi WhatsApp</label>
-                <select name="wa_notification" class="form-control" required>
-                    <option value="aktif" <?= (isset($_POST['wa_notification']) && $_POST['wa_notification'] == 'aktif') ? 'selected' : '' ?>>Aktifkan Notifikasi WA</option>
-                    <option value="nonaktif" <?= (isset($_POST['wa_notification']) && $_POST['wa_notification'] == 'nonaktif') ? 'selected' : '' ?>>Nonaktifkan Notifikasi WA</option>
-                </select>
+            <div class="grid-2-form">
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Jenis Kelamin</label>
+                    <select name="jenis_kelamin" class="form-control" required>
+                        <option value="" disabled <?= !isset($_POST['jenis_kelamin']) ? 'selected' : '' ?>>Pilih Jenis Kelamin</option>
+                        <option value="Laki-laki" <?= (isset($_POST['jenis_kelamin']) && $_POST['jenis_kelamin'] == 'Laki-laki') ? 'selected' : '' ?>>Laki-laki</option>
+                        <option value="Perempuan" <?= (isset($_POST['jenis_kelamin']) && $_POST['jenis_kelamin'] == 'Perempuan') ? 'selected' : '' ?>>Perempuan</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Persetujuan Notifikasi WA</label>
+                    <select name="wa_notification" class="form-control" required>
+                        <option value="aktif" <?= (isset($_POST['wa_notification']) && $_POST['wa_notification'] == 'aktif') ? 'selected' : '' ?>>Aktifkan Notifikasi WA</option>
+                        <option value="nonaktif" <?= (isset($_POST['wa_notification']) && $_POST['wa_notification'] == 'nonaktif') ? 'selected' : '' ?>>Nonaktifkan Notifikasi WA</option>
+                    </select>
+                </div>
             </div>
 
             <div class="form-group">
@@ -158,5 +192,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <a href="../index.php" style="color: var(--text-muted);"><i class="fa-solid fa-arrow-left"></i> Kembali ke Beranda</a>
         </div>
     </div>
+    <script>
+        const dateInput = document.getElementById('tanggal_lahir');
+        
+        function validateAge() {
+            if (!dateInput.value) return;
+            
+            const birthdate = new Date(dateInput.value);
+            const today = new Date();
+            let age = today.getFullYear() - birthdate.getFullYear();
+            const m = today.getMonth() - birthdate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthdate.getDate())) {
+                age--;
+            }
+            
+            if (age < 18 || age > 32) {
+                dateInput.setCustomValidity('Pendaftaran hanya diperbolehkan untuk pengguna berusia 18–32 tahun.');
+            } else {
+                dateInput.setCustomValidity('');
+            }
+        }
+        
+        dateInput.addEventListener('input', validateAge);
+        window.addEventListener('load', validateAge);
+    </script>
 </body>
 </html>

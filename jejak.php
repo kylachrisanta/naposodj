@@ -278,8 +278,19 @@ while($row = $result->fetch_assoc()) {
         </div>
     <?php else: ?>
         <?php foreach($jejak_by_category as $kategori => $items): ?>
-            <div class="category-section">
-                <h2 class="category-title"><?= $kategori ?></h2>
+            <div class="category-section" id="<?= strtolower($kategori) ?>">
+                <div class="sh-marquee-container" onclick="this.classList.toggle('paused')" title="Klik untuk berhenti / lanjutkan" style="margin-bottom: 35px; border-left: none; border-right: none;">
+                    <div class="sh-marquee-track">
+                        <?php 
+                        $cat_upper = strtoupper($kategori);
+                        $all_items = array_fill(0, 15, $cat_upper);
+                        foreach ($all_items as $item): 
+                        ?>
+                            <span class="sh-marquee-item"><?= htmlspecialchars($item) ?></span>
+                            <span class="sh-marquee-bullet" style="color: var(--accent); font-size: 1.3rem; margin: 0 1.5rem; flex-shrink: 0;">•</span>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
                 
                 <div class="swiper categorySwiper">
                     <div class="swiper-wrapper">

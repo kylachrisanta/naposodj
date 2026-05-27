@@ -8,7 +8,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
 
     // Cari user berdasarkan email
-    $sql = "SELECT id, nama, password, role FROM users WHERE email = '$email'";
+    $sql = "SELECT id, nama, nama_panggilan, password, role FROM users WHERE email = '$email'";
     $result = $conn->query($sql);
 
     if ($result->num_rows == 1) {
@@ -27,6 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             } else {
                 $_SESSION['user_id'] = $row['id'];
                 $_SESSION['user_nama'] = $row['nama'];
+                $_SESSION['user_nama_panggilan'] = $row['nama_panggilan'];
                 $_SESSION['user_role'] = $row['role'];
                 header("Location: ../index.php");
             }

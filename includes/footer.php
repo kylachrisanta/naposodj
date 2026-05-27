@@ -14,9 +14,9 @@
             <div class="footer-col">
                 <h3>Tautan Cepat</h3>
                 <ul style="list-style: none; padding: 0;">
-                    <li style="margin-bottom: 10px;"><a href="index.php" style="color: #cbd5e1;">Tentang Kami</a></li>
+                    <li style="margin-bottom: 10px;"><a href="index.php" style="color: #cbd5e1;">Beranda</a></li>
+                    <li style="margin-bottom: 10px;"><a href="tentang.php" style="color: #cbd5e1;">Tentang Kami</a></li>
                     <li style="margin-bottom: 10px;"><a href="info.php" style="color: #cbd5e1;">Jadwal Kegiatan</a></li>
-                    <li style="margin-bottom: 10px;"><a href="sejarah.php" style="color: #cbd5e1;">Sejarah Gereja</a></li>
                 </ul>
             </div>
             

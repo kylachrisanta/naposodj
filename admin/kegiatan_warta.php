@@ -20,6 +20,16 @@ if (isset($_GET['delete_kegiatan'])) {
 // Handle Delete Warta
 if (isset($_GET['delete_warta'])) {
     $id = (int)$_GET['delete_warta'];
+    $res = $conn->query("SELECT gambar FROM warta WHERE id=$id");
+    if ($res && $res->num_rows > 0) {
+        $row = $res->fetch_assoc();
+        if (!empty($row['gambar'])) {
+            $file_path = '../assets/img/warta/' . $row['gambar'];
+            if (file_exists($file_path)) {
+                unlink($file_path);
+            }
+        }
+    }
     $conn->query("DELETE FROM warta WHERE id=$id");
     $_SESSION['admin_flash'] = "<div style='color: #15803d; background: #dcfce7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #86efac;'><i class='fa-solid fa-circle-check'></i> Warta berhasil dihapus.</div>";
     header("Location: kegiatan_warta.php");
@@ -53,15 +63,99 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_warta'])) {
     $judul = $conn->real_escape_string($_POST['judul']);
     $isi_pengumuman = $conn->real_escape_string($_POST['isi_pengumuman']);
+    $butuh_pendaftaran = isset($_POST['butuh_pendaftaran']) ? 1 : 0;
+    
+    $error_warta = "";
+    $gambar_filename = NULL;
+    $has_new_image = isset($_FILES['gambar']) && $_FILES['gambar']['error'] != UPLOAD_ERR_NO_FILE;
+    
+    if ($has_new_image) {
+        $file = $_FILES['gambar'];
+        $file_name = $file['name'];
+        $file_tmp = $file['tmp_name'];
+        $file_size = $file['size'];
+        $file_error = $file['error'];
+        
+        if ($file_error !== UPLOAD_ERR_OK) {
+            $error_warta = "Gagal mengunggah gambar. Kode error: $file_error";
+        } else {
+            $allowed_exts = ['jpg', 'jpeg', 'png'];
+            $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+            if (!in_array($file_ext, $allowed_exts)) {
+                $error_warta = "Format gambar tidak didukung. Harap unggah file JPG, JPEG, atau PNG.";
+            } elseif ($file_size > 5 * 1024 * 1024) {
+                $error_warta = "Ukuran gambar terlalu besar. Maksimal 5MB.";
+            } else {
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mime_type = finfo_file($finfo, $file_tmp);
+                finfo_close($finfo);
+                $allowed_mimes = ['image/jpeg', 'image/png'];
+                if (!in_array($mime_type, $allowed_mimes)) {
+                    $error_warta = "Tipe file tidak valid. Harap unggah gambar JPG/JPEG atau PNG yang valid.";
+                }
+            }
+            
+            if (empty($error_warta)) {
+                $target_dir = '../assets/img/warta/';
+                if (!is_dir($target_dir)) {
+                    mkdir($target_dir, 0755, true);
+                }
+                
+                $new_filename = 'warta_' . time() . '_' . rand(100, 999) . '.' . $file_ext;
+                $target_path = $target_dir . $new_filename;
+                
+                if (move_uploaded_file($file_tmp, $target_path)) {
+                    $gambar_filename = $new_filename;
+                } else {
+                    $error_warta = "Gagal menyimpan file gambar.";
+                }
+            }
+        }
+    }
+    
+    if (!empty($error_warta)) {
+        $_SESSION['admin_flash'] = "<div style='color: #b91c1c; background: #fee2e2; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #fecaca;'><i class='fa-solid fa-circle-xmark'></i> " . $error_warta . "</div>";
+        header("Location: kegiatan_warta.php");
+        exit();
+    }
     
     if (isset($_POST['id_warta']) && $_POST['id_warta'] != '') {
         $id = (int)$_POST['id_warta'];
-        $sql = "UPDATE warta SET judul='$judul', isi_pengumuman='$isi_pengumuman' WHERE id=$id";
+        
+        // Get existing warta image
+        $old_img_res = $conn->query("SELECT gambar FROM warta WHERE id=$id");
+        $old_img = ($old_img_res && $old_img_res->num_rows > 0) ? $old_img_res->fetch_assoc()['gambar'] : NULL;
+        
+        $hapus_gambar = isset($_POST['hapus_gambar']) ? 1 : 0;
+        
+        if ($has_new_image) {
+            // Delete old file
+            if (!empty($old_img)) {
+                $old_file_path = '../assets/img/warta/' . $old_img;
+                if (file_exists($old_file_path)) {
+                    unlink($old_file_path);
+                }
+            }
+            $sql = "UPDATE warta SET judul='$judul', isi_pengumuman='$isi_pengumuman', butuh_pendaftaran=$butuh_pendaftaran, gambar='$gambar_filename' WHERE id=$id";
+        } elseif ($hapus_gambar) {
+            // Delete old file
+            if (!empty($old_img)) {
+                $old_file_path = '../assets/img/warta/' . $old_img;
+                if (file_exists($old_file_path)) {
+                    unlink($old_file_path);
+                }
+            }
+            $sql = "UPDATE warta SET judul='$judul', isi_pengumuman='$isi_pengumuman', butuh_pendaftaran=$butuh_pendaftaran, gambar=NULL WHERE id=$id";
+        } else {
+            $sql = "UPDATE warta SET judul='$judul', isi_pengumuman='$isi_pengumuman', butuh_pendaftaran=$butuh_pendaftaran WHERE id=$id";
+        }
+        
         if($conn->query($sql)) {
             $_SESSION['admin_flash'] = "<div style='color: #15803d; background: #dcfce7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #86efac;'><i class='fa-solid fa-circle-check'></i> Warta berhasil diperbarui.</div>";
         }
     } else {
-        $sql = "INSERT INTO warta (judul, isi_pengumuman) VALUES ('$judul', '$isi_pengumuman')";
+        $gambar_val = $gambar_filename ? "'$gambar_filename'" : "NULL";
+        $sql = "INSERT INTO warta (judul, isi_pengumuman, butuh_pendaftaran, gambar) VALUES ('$judul', '$isi_pengumuman', $butuh_pendaftaran, $gambar_val)";
         if($conn->query($sql)) {
             $_SESSION['admin_flash'] = "<div style='color: #15803d; background: #dcfce7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #86efac;'><i class='fa-solid fa-circle-check'></i> Warta berhasil ditambahkan.</div>";
         }
@@ -88,7 +182,7 @@ if (isset($_GET['edit_kegiatan'])) {
 // Check Edit Mode Warta
 $edit_warta_mode = false;
 $edit_warta_data = [
-    'id' => '', 'judul' => '', 'isi_pengumuman' => ''
+    'id' => '', 'judul' => '', 'isi_pengumuman' => '', 'butuh_pendaftaran' => 0, 'gambar' => NULL
 ];
 if (isset($_GET['edit_warta'])) {
     $id = (int)$_GET['edit_warta'];
@@ -172,16 +266,48 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_wa_custom'])) {
     <!-- Form Warta -->
     <div style="background: white; padding: 25px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);">
         <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-bullhorn" style="color: var(--primary);"></i> <?= $edit_warta_mode ? 'Ubah Warta' : 'Tambah Warta Baru' ?></h3>
-        <form action="kegiatan_warta.php" method="POST">
+        <form action="kegiatan_warta.php" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="id_warta" value="<?= $edit_warta_data['id'] ?>">
             
             <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 8px; font-weight: 500;">Judul Pengumuman</label>
                 <input type="text" name="judul" value="<?= htmlspecialchars($edit_warta_data['judul']) ?>" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
             </div>
-            <div style="margin-bottom: 20px;">
+            <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 8px; font-weight: 500;">Isi Pengumuman</label>
                 <textarea name="isi_pengumuman" rows="9" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: var(--font-body);"><?= htmlspecialchars($edit_warta_data['isi_pengumuman']) ?></textarea>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Gambar Pendukung <span style="font-weight: 400; color: var(--text-muted); font-size: 0.8rem;">(Opsional)</span></label>
+                <input type="file" name="gambar" id="gambar_warta" accept="image/jpeg,image/png" onchange="previewWartaImage(event)" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background: white; font-size: 0.9rem;">
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Mendukung format JPG, JPEG, PNG. Maksimal ukuran file 5MB.</p>
+                
+                <!-- Client-side image preview -->
+                <div id="warta_preview_container" style="display: none; margin-top: 12px; border: 1px dashed var(--border-color); padding: 10px; border-radius: 6px; text-align: center; background: #f8fafc;">
+                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Pratinjau Gambar Baru:</span>
+                    <img id="warta_preview" src="" alt="Pratinjau Gambar" style="max-height: 150px; border-radius: 6px; box-shadow: var(--shadow-sm); max-width: 100%; object-fit: contain;">
+                </div>
+            </div>
+
+            <?php if ($edit_warta_mode && !empty($edit_warta_data['gambar'])): ?>
+            <div style="margin-bottom: 15px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; align-items: center; gap: 15px;">
+                <div style="width: 60px; height: 60px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color);">
+                    <img src="../assets/img/warta/<?= htmlspecialchars($edit_warta_data['gambar']) ?>" alt="Gambar Aktif" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="flex: 1;">
+                    <span style="font-size: 0.85rem; color: var(--text-muted); display: block; font-weight: 500;">Gambar Aktif saat ini</span>
+                    <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+                        <input type="checkbox" name="hapus_gambar" id="hapus_gambar" value="1" style="width: 15px; height: 15px; cursor: pointer;">
+                        <label for="hapus_gambar" style="font-size: 0.85rem; color: #b91c1c; font-weight: 600; cursor: pointer;">Hapus Gambar Aktif</label>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+            
+            <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" name="butuh_pendaftaran" id="butuh_pendaftaran" value="1" <?= ($edit_warta_data['butuh_pendaftaran'] ?? 0) == 1 ? 'checked' : '' ?> style="width: 18px; height: 18px; cursor: pointer;">
+                <label for="butuh_pendaftaran" style="font-weight: 500; cursor: pointer; color: var(--text-main);">Butuh Pendaftaran Peserta</label>
             </div>
             
             <div style="display: flex; gap: 10px;">
@@ -266,13 +392,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_wa_custom'])) {
                 </thead>
                 <tbody>
                     <?php
-                    $result = $conn->query("SELECT * FROM warta ORDER BY tanggal_posting DESC");
+                    $result = $conn->query("SELECT *, (SELECT COUNT(*) FROM pendaftaran_warta WHERE warta_id = warta.id) as total_pendaftar FROM warta ORDER BY tanggal_posting DESC");
                     while($row = $result->fetch_assoc()):
                     ?>
                     <tr style="border-bottom: 1px solid var(--border-color);">
                         <td style="padding: 15px 20px; vertical-align: top;">
                             <strong style="display: block; margin-bottom: 4px;"><?= htmlspecialchars($row['judul']) ?></strong>
                             <span style="font-size: 0.85rem; color: var(--text-muted);"><?= mb_strimwidth(htmlspecialchars($row['isi_pengumuman']), 0, 80, "...") ?></span>
+                            <?php if ($row['butuh_pendaftaran']): ?>
+                                <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span style="font-size: 0.75rem; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 9999px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                                        <i class="fa-solid fa-user-check"></i> Pendaftaran Aktif
+                                    </span>
+                                    <a href="pendaftar.php?warta_id=<?= $row['id'] ?>" style="font-size: 0.8rem; color: var(--primary); font-weight: 600; text-decoration: underline;" title="Kelola Peserta">
+                                        (<?= $row['total_pendaftar'] ?> Pendaftar) Kelola Peserta
+                                    </a>
+                                </div>
+                            <?php endif; ?>
                         </td>
                         <td style="padding: 15px 20px; color: var(--text-muted); font-size: 0.9rem; vertical-align: top;">
                             <?= date('d M Y, H:i', strtotime($row['tanggal_posting'])) ?>
@@ -357,6 +493,34 @@ Mari kita persiapkan hati dan diri untuk hadir tepat waktu. Sampai jumpa di loka
 
 function closeWAModal() {
     document.getElementById('waModal').style.display = 'none';
+}
+
+function previewWartaImage(event) {
+    const input = event.target;
+    const previewContainer = document.getElementById('warta_preview_container');
+    const previewImage = document.getElementById('warta_preview');
+    
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Ukuran file terlalu besar! Maksimal ukuran file adalah 5MB.');
+            input.value = '';
+            previewContainer.style.display = 'none';
+            previewImage.src = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImage.src = e.target.result;
+            previewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        previewContainer.style.display = 'none';
+        previewImage.src = '';
+    }
 }
 </script>
 

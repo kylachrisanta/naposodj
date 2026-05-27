@@ -11,18 +11,23 @@
             </a>
         </li>
         <li>
+            <a href="user.php" class="<?= ($current_page == 'user.php') ? 'active' : '' ?>">
+                <i class="fa-solid fa-user-shield"></i> Kelola Akun
+            </a>
+        </li>
+        <li>
             <a href="kegiatan_warta.php" class="<?= ($current_page == 'kegiatan_warta.php') ? 'active' : '' ?>">
                 <i class="fa-solid fa-calendar-days"></i> Kelola Info
             </a>
         </li>
         <li>
-            <a href="dokumentasi.php" class="<?= (strpos($current_page, 'dokumentasi.php') !== false) ? 'active' : '' ?>">
-                <i class="fa-solid fa-camera-retro"></i> Kelola Dokumentasi
+            <a href="kegiatan_renungan.php" class="<?= ($current_page == 'kegiatan_renungan.php') ? 'active' : '' ?>">
+                <i class="fa-solid fa-book-open-reader"></i> Kelola Renungan
             </a>
         </li>
         <li>
-            <a href="user.php" class="<?= ($current_page == 'user.php') ? 'active' : '' ?>">
-                <i class="fa-solid fa-user-shield"></i> Kelola Akun
+            <a href="dokumentasi.php" class="<?= ($current_page == 'dokumentasi.php') ? 'active' : '' ?>">
+                <i class="fa-solid fa-camera-retro"></i> Kelola Dokumentasi
             </a>
         </li>
         <li>
