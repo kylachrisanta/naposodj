@@ -35,6 +35,21 @@ while($row = $result->fetch_assoc()) {
         color: #1e293b;
         margin-bottom: 10px;
         font-weight: 800;
+        position: relative;
+        display: inline-block;
+        padding-bottom: 15px;
+    }
+
+    .sorotan-header h1::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 5px;
+        background: var(--gradient-primary);
+        border-radius: 4px;
     }
 
     .year-section {
@@ -336,24 +351,15 @@ while($row = $result->fetch_assoc()) {
                     <div class="swiper-wrapper">
                         <?php foreach($items as $item): ?>
                             <div class="swiper-slide">
-                                <div class="sorotan-card" onclick="openLightbox('<?= $item['file_media'] ?>', '<?= $item['tipe_media'] ?>', '<?= addslashes(htmlspecialchars($item['judul'])) ?>', '<?= addslashes(htmlspecialchars($item['deskripsi'])) ?>')" style="cursor: pointer;">
+                                <div class="sorotan-card" onclick="openLightbox('<?= $item['file_media'] ?>', '<?= addslashes(htmlspecialchars($item['judul'])) ?>', '<?= addslashes(htmlspecialchars($item['deskripsi'])) ?>')" style="cursor: pointer;">
                                     <div class="card-media">
-                                        <?php if($item['tipe_media'] == 'foto'): ?>
-                                            <img src="assets/img/sorotan/<?= $item['file_media'] ?>" alt="<?= htmlspecialchars($item['judul']) ?>">
-                                        <?php else: ?>
-                                            <video src="assets/img/sorotan/<?= $item['file_media'] ?>"></video>
-                                            <div class="video-overlay"><i class="fa-solid fa-play"></i></div>
-                                        <?php endif; ?>
+                                        <img src="assets/img/sorotan/<?= $item['file_media'] ?>" alt="<?= htmlspecialchars($item['judul']) ?>">
                                     </div>
                                     <div class="card-info">
                                         <h3><?= htmlspecialchars($item['judul']) ?></h3>
                                         <p><?= mb_strimwidth(htmlspecialchars($item['deskripsi']), 0, 100, "...") ?></p>
                                         <div class="card-meta">
                                             <span><?= date('d M Y', strtotime($item['tanggal_kegiatan'])) ?></span>
-                                            <?php if($item['divisi']): ?>
-                                                <span>•</span>
-                                                <span><?= $item['divisi'] ?></span>
-                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 </div>
@@ -421,18 +427,13 @@ while($row = $result->fetch_assoc()) {
         });
     });
 
-    function openLightbox(file, type, title, desc) {
+    function openLightbox(file, title, desc) {
         const lightbox = document.getElementById('lightbox');
         const mediaContainer = document.getElementById('lightboxMedia');
         const titleEl = document.getElementById('lightboxTitle');
         const descEl = document.getElementById('lightboxDesc');
 
-        mediaContainer.innerHTML = '';
-        if (type === 'foto') {
-            mediaContainer.innerHTML = `<img src="assets/img/sorotan/${file}" alt="${title}">`;
-        } else {
-            mediaContainer.innerHTML = `<video src="assets/img/sorotan/${file}" controls autoplay></video>`;
-        }
+        mediaContainer.innerHTML = `<img src="assets/img/sorotan/${file}" alt="${title}">`;
 
         titleEl.innerText = title;
         descEl.innerText = desc;

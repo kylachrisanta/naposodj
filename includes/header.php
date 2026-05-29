@@ -29,7 +29,7 @@ $is_logged_in = isset($_SESSION['user_id']) || isset($_SESSION['admin_id']);
     <div class="container" style="max-width: 95%;">
         <nav class="navbar">
             <a href="index.php" class="logo">
-                <i class="fa-solid fa-church" style="color: var(--primary);"></i>
+                <img src="assets/img/beranda/logo_naposo.png" alt="Logo" style="height: 35px; width: auto; object-fit: contain;">
                 Naposo HKBP Duren Jaya
             </a>
             <ul class="nav-links">
@@ -94,7 +94,7 @@ $is_logged_in = isset($_SESSION['user_id']) || isset($_SESSION['admin_id']);
 <div class="mobile-menu" id="mobileMenu">
     <div class="mobile-menu-header">
         <a href="index.php" class="logo">
-            <i class="fa-solid fa-church" style="color: var(--primary);"></i>
+            <img src="assets/img/beranda/logo_naposo.png" alt="Logo" style="height: 35px; width: auto; object-fit: contain;">
             Naposo HKBP
         </a>
         <button id="closeMenu"><i class="fa-solid fa-xmark"></i></button>

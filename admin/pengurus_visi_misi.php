@@ -26,6 +26,89 @@ if (isset($_GET['delete'])) {
     }
 }
 
+// Handle Delete Program Kerja
+if (isset($_GET['delete_proker'])) {
+    $id = (int)$_GET['delete_proker'];
+    $res = $conn->query("SELECT foto FROM program_kerja WHERE id=$id");
+    if($res->num_rows > 0) {
+        $row = $res->fetch_assoc();
+        $file_path = '../assets/img/proker/' . $row['foto'];
+        if($row['foto'] != '' && file_exists($file_path)) {
+            unlink($file_path);
+        }
+        $conn->query("DELETE FROM program_kerja WHERE id=$id");
+        $_SESSION['admin_flash'] = "<div class='alert alert-success'><i class='fa-solid fa-circle-check'></i> Data program kerja berhasil dihapus.</div>";
+        header("Location: pengurus_visi_misi.php");
+        exit();
+    }
+}
+
+// Handle Edit Program Kerja (POST)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_edit_proker'])) {
+    $id = (int)$_POST['proker_id'];
+    $judul = $conn->real_escape_string($_POST['judul']);
+    
+    $foto = "";
+    if(isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
+        $ext = strtolower(pathinfo($_FILES["foto"]["name"], PATHINFO_EXTENSION));
+        $foto = time() . '_proker_' . rand(100,999) . '.' . $ext;
+        if(move_uploaded_file($_FILES["foto"]["tmp_name"], '../assets/img/proker/' . $foto)) {
+            $old_res = $conn->query("SELECT foto FROM program_kerja WHERE id=$id");
+            if($old_res->num_rows > 0) {
+                $old_file = $old_res->fetch_assoc()['foto'];
+                if($old_file != '' && file_exists('../assets/img/proker/' . $old_file)) unlink('../assets/img/proker/' . $old_file);
+            }
+        } else {
+            $foto = "";
+        }
+    }
+
+    if($foto != "") {
+        $sql = "UPDATE program_kerja SET judul='$judul', foto='$foto' WHERE id=$id";
+    } else {
+        $sql = "UPDATE program_kerja SET judul='$judul' WHERE id=$id";
+    }
+    $conn->query($sql);
+    $_SESSION['admin_flash'] = "<div class='alert alert-success'><i class='fa-solid fa-circle-check'></i> Program kerja berhasil diperbarui.</div>";
+    header("Location: pengurus_visi_misi.php");
+    exit();
+}
+
+// Handle Add Program Kerja Terpisah (POST)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_new_proker'])) {
+    $judul = $conn->real_escape_string($_POST['judul']);
+    $divisi = $conn->real_escape_string($_POST['divisi']);
+    
+    $foto = "";
+    $uploadOk = true;
+    if(isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
+        $ext = strtolower(pathinfo($_FILES["foto"]["name"], PATHINFO_EXTENSION));
+        $valid_ext = ['jpg', 'jpeg', 'png', 'webp'];
+        
+        if(!in_array($ext, $valid_ext)) {
+            $_SESSION['admin_flash'] = "<div class='alert alert-danger'>Format foto tidak valid. Gunakan JPG/PNG/WEBP.</div>";
+            $uploadOk = false;
+        } else {
+            $foto = time() . '_proker_' . rand(100,999) . '.' . $ext;
+            if(!move_uploaded_file($_FILES["foto"]["tmp_name"], '../assets/img/proker/' . $foto)) {
+                $_SESSION['admin_flash'] = "<div class='alert alert-danger'>Gagal mengunggah foto.</div>";
+                $uploadOk = false;
+            }
+        }
+    } else {
+        $_SESSION['admin_flash'] = "<div class='alert alert-danger'>Foto program kerja wajib diunggah.</div>";
+        $uploadOk = false;
+    }
+
+    if($uploadOk) {
+        $sql = "INSERT INTO program_kerja (divisi, judul, foto) VALUES ('$divisi', '$judul', '$foto')";
+        $conn->query($sql);
+        $_SESSION['admin_flash'] = "<div class='alert alert-success'><i class='fa-solid fa-circle-check'></i> Program kerja berhasil ditambahkan secara terpisah.</div>";
+    }
+    header("Location: pengurus_visi_misi.php");
+    exit();
+}
+
 // Handle Add / Edit Pengurus
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_pengurus'])) {
     $nama = $conn->real_escape_string($_POST['nama']);
@@ -78,22 +161,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_pengurus'])) {
             }
         }
 
-        // Handle Program Kerja Upload (Only if Category is Divisi and fields are filled)
-        if ($kategori == 'Divisi' && isset($_FILES['proker_foto']) && $_FILES['proker_foto']['error'] == 0 && !empty($_POST['proker_judul'])) {
-            $proker_judul = $conn->real_escape_string($_POST['proker_judul']);
-            $proker_upload_dir = '../assets/img/sorotan/';
-            $p_ext = strtolower(pathinfo($_FILES["proker_foto"]["name"], PATHINFO_EXTENSION));
-            $p_foto = time() . '_proker_' . rand(100,999) . '.' . $p_ext;
-            
-            if(move_uploaded_file($_FILES["proker_foto"]["tmp_name"], $proker_upload_dir . $p_foto)) {
-                $tahun = date('Y');
-                $tanggal = date('Y-m-d');
-                $sql_proker = "INSERT INTO sorotan (judul, deskripsi, tahun, tanggal_kegiatan, tipe_media, file_media, divisi) 
-                               VALUES ('$proker_judul', 'Program Kerja dari Divisi $divisi', $tahun, '$tanggal', 'foto', '$p_foto', '$divisi')";
-                $conn->query($sql_proker);
-                $_SESSION['admin_flash'] .= "<div class='alert alert-success'><i class='fa-solid fa-image'></i> Foto program kerja juga berhasil diunggah.</div>";
-            }
-        }
     }
     header("Location: pengurus_visi_misi.php");
     exit();
@@ -128,6 +195,18 @@ if (isset($_GET['edit'])) {
     if ($res->num_rows > 0) {
         $edit_mode = true;
         $edit_data = $res->fetch_assoc();
+    }
+}
+
+// Check Edit Mode Program Kerja
+$edit_proker_mode = false;
+$edit_proker_data = [];
+if (isset($_GET['edit_proker'])) {
+    $id = (int)$_GET['edit_proker'];
+    $res = $conn->query("SELECT * FROM program_kerja WHERE id=$id");
+    if ($res->num_rows > 0) {
+        $edit_proker_mode = true;
+        $edit_proker_data = $res->fetch_assoc();
     }
 }
 ?>
@@ -200,7 +279,7 @@ if (isset($_GET['edit'])) {
                         <option value="Rohani" <?= $edit_data['divisi'] == 'Rohani' ? 'selected' : '' ?>>Rohani</option>
                         <option value="Padus & Musik" <?= $edit_data['divisi'] == 'Padus & Musik' ? 'selected' : '' ?>>Padus & Musik</option>
                         <option value="Humas" <?= $edit_data['divisi'] == 'Humas' ? 'selected' : '' ?>>Humas</option>
-                        <option value="Olahraga & Seni" <?= $edit_data['divisi'] == 'Olahraga & Seni' ? 'selected' : '' ?>>Olahraga & Seni</option>
+                        <option value="Olahraga" <?= $edit_data['divisi'] == 'Olahraga' ? 'selected' : '' ?>>Olahraga</option>
                     </select>
                 </div>
                 <div>
@@ -214,22 +293,6 @@ if (isset($_GET['edit'])) {
                 <textarea name="deskripsi" rows="3" class="form-control" placeholder="Tuliskan deskripsi singkat atau kutipan..."><?= htmlspecialchars($edit_data['deskripsi']) ?></textarea>
             </div>
 
-            <!-- Program Kerja Section (Hidden by default, shown for Divisi) -->
-            <div id="proker-section" style="display: <?= $edit_data['kategori'] == 'Divisi' ? 'block' : 'none' ?>; background: var(--bg-subtle); padding: 20px; border-radius: var(--radius-sm); border: 1px dashed var(--primary); margin-bottom: 20px;">
-                <h4 style="margin-bottom: 15px; color: var(--primary);"><i class="fa-solid fa-plus-circle"></i> Tambah Dokumentasi Program Kerja</h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div>
-                        <label>Judul Program Kerja</label>
-                        <input type="text" name="proker_judul" class="form-control" placeholder="Contoh: Retret Pemuda 2024">
-                    </div>
-                    <div>
-                        <label>Foto Dokumentasi</label>
-                        <input type="file" name="proker_foto" class="form-control">
-                    </div>
-                </div>
-                <small style="color: var(--text-muted); display: block; margin-top: 10px;">Foto ini akan muncul di galeri program kerja divisi pada halaman publik.</small>
-            </div>
-            
             <div style="display: flex; gap: 10px;">
                 <button type="submit" name="submit_pengurus" class="btn-primary"><?= $edit_mode ? 'Simpan Perubahan' : 'Tambah Pengurus' ?></button>
                 <?php if($edit_mode): ?>
@@ -239,6 +302,64 @@ if (isset($_GET['edit'])) {
         </form>
     </div>
     
+    <?php if($edit_proker_mode): ?>
+    <!-- Bagian Form Edit Program Kerja -->
+    <div style="background: white; padding: 25px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);">
+        <h3 style="margin-bottom: 20px; color: var(--primary);"><i class="fa-solid fa-edit"></i> Ubah Data Program Kerja</h3>
+        <form action="pengurus_visi_misi.php" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="proker_id" value="<?= $edit_proker_data['id'] ?>">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
+                <div>
+                    <label>Judul Program Kerja</label>
+                    <input type="text" name="judul" value="<?= htmlspecialchars($edit_proker_data['judul']) ?>" required class="form-control">
+                </div>
+                <div>
+                    <label>Divisi</label>
+                    <input type="text" value="<?= htmlspecialchars($edit_proker_data['divisi']) ?>" disabled class="form-control">
+                </div>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label>Foto Dokumentasi (Opsional, kosongkan jika tidak ingin ganti)</label>
+                <input type="file" name="foto" class="form-control">
+                <small style="display: block; margin-top: 5px; color: var(--primary);">Foto saat ini: <?= htmlspecialchars($edit_proker_data['foto']) ?></small>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" name="submit_edit_proker" class="btn-primary">Simpan Perubahan</button>
+                <a href="pengurus_visi_misi.php" class="btn-secondary">Batal Edit</a>
+            </div>
+        </form>
+    </div>
+    <?php endif; ?>
+    
+    <!-- Bagian Form Tambah Program Kerja Mandiri -->
+    <div style="background: white; padding: 25px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);">
+        <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-folder-plus" style="color: var(--primary);"></i> Tambah Program Kerja Baru (Tanpa Tambah Pengurus)</h3>
+        <form action="pengurus_visi_misi.php" method="POST" enctype="multipart/form-data">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
+                <div>
+                    <label>Judul Program Kerja</label>
+                    <input type="text" name="judul" required class="form-control" placeholder="Contoh: Donor Darah 2024">
+                </div>
+                <div>
+                    <label>Pilih Divisi Terkait</label>
+                    <select name="divisi" required class="form-control">
+                        <option value="">-- Pilih Divisi --</option>
+                        <option value="Rohani">Rohani</option>
+                        <option value="Padus & Musik">Padus & Musik</option>
+                        <option value="Humas">Humas</option>
+                        <option value="Olahraga">Olahraga</option>
+                    </select>
+                </div>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label>Foto Dokumentasi Program Kerja</label>
+                <input type="file" name="foto" required class="form-control">
+                <small style="color: var(--text-muted); display: block; margin-top: 10px;">Program kerja ini akan otomatis masuk ke divisi terkait di halaman Tentang Kami.</small>
+            </div>
+            <button type="submit" name="submit_new_proker" class="btn-primary">Tambah Program Kerja</button>
+        </form>
+    </div>
+
 </div>
 
 <!-- Table Section Pengurus -->
@@ -300,11 +421,56 @@ if (isset($_GET['edit'])) {
     </div>
 </div>
 
+<!-- Table Section Program Kerja -->
+<div style="background: white; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); overflow: hidden; margin-top: 30px;">
+    <h3 style="padding: 20px; background: var(--bg-subtle); border-bottom: 1px solid var(--border-color); margin: 0;"><i class="fa-solid fa-image" style="color: var(--primary);"></i> Daftar Program Kerja Divisi</h3>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--border-color);">
+                    <th style="padding: 15px 20px; width: 10%;">Foto</th>
+                    <th style="padding: 15px 20px; width: 40%;">Judul Program</th>
+                    <th style="padding: 15px 20px; width: 25%;">Divisi</th>
+                    <th style="padding: 15px 20px; width: 15%;">Tgl Dibuat</th>
+                    <th style="padding: 15px 20px; width: 10%;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $result_proker = $conn->query("SELECT * FROM program_kerja ORDER BY created_at DESC");
+                while($row = $result_proker->fetch_assoc()):
+                ?>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 10px 20px;">
+                        <img src="../assets/img/proker/<?= $row['foto'] ?>" style="width: 60px; height: 45px; border-radius: 4px; object-fit: cover; border: 1px solid var(--border-color);">
+                    </td>
+                    <td style="padding: 15px 20px; font-weight: 500;"><?= htmlspecialchars($row['judul']) ?></td>
+                    <td style="padding: 15px 20px;">
+                        <span class="badge" style="background: #e0e7ff; color: #4338ca;"><?= htmlspecialchars($row['divisi']) ?></span>
+                    </td>
+                    <td style="padding: 15px 20px; color: var(--text-muted); font-size: 0.85rem;">
+                        <?= date('d/m/Y', strtotime($row['created_at'])) ?>
+                    </td>
+                    <td style="padding: 15px 20px;">
+                        <a href="pengurus_visi_misi.php?edit_proker=<?= $row['id'] ?>" class="text-primary" style="margin-right: 15px;" title="Edit"><i class="fa-solid fa-edit"></i></a>
+                        <a href="pengurus_visi_misi.php?delete_proker=<?= $row['id'] ?>" class="text-danger" onclick="return confirm('Yakin ingin menghapus data program kerja ini?')" title="Hapus"><i class="fa-solid fa-trash"></i></a>
+                    </td>
+                </tr>
+                <?php endwhile; ?>
+                <?php if($result_proker->num_rows == 0): ?>
+                <tr>
+                    <td colspan="5" style="padding: 20px; text-align: center; color: var(--text-muted);">Belum ada data program kerja divisi.</td>
+                </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <script>
 function toggleDivisiField(val) {
     const isDivisi = (val === 'Divisi');
     document.getElementById('divisi-field').style.display = isDivisi ? 'block' : 'none';
-    document.getElementById('proker-section').style.display = isDivisi ? 'block' : 'none';
 }
 </script>
 

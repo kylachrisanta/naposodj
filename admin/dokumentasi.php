@@ -22,9 +22,9 @@ if (isset($_GET['delete']) && isset($_GET['type'])) {
         $upload_dir = '../assets/img/jejak/';
         $media_col = 'file_media';
     } else {
-        $table = 'beranda_foto';
+        $table = 'foto_beranda';
         $upload_dir = '../assets/img/beranda/';
-        $media_col = 'file_foto';
+        $media_col = 'file_media';
     }
     
     $res = $conn->query("SELECT $media_col FROM $table WHERE id=$id");
@@ -54,20 +54,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['type'])) {
         $upload_dir = '../assets/img/jejak/';
         $media_col = 'file_media';
     } else {
-        $table = 'beranda_foto';
+        $table = 'foto_beranda';
         $upload_dir = '../assets/img/beranda/';
-        $media_col = 'file_foto';
+        $media_col = 'file_media';
     }
     
     $judul = $conn->real_escape_string($_POST['judul']);
     $deskripsi = isset($_POST['deskripsi']) ? $conn->real_escape_string($_POST['deskripsi']) : '';
     $tahun = isset($_POST['tahun']) ? (int)$_POST['tahun'] : date('Y');
-    $tipe_media = isset($_POST['tipe_media']) ? $conn->real_escape_string($_POST['tipe_media']) : 'foto';
     $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
     
     // Fields specific to type
     $tanggal_kegiatan = isset($_POST['tanggal_kegiatan']) ? $conn->real_escape_string($_POST['tanggal_kegiatan']) : date('Y-m-d');
-    $divisi = isset($_POST['divisi']) ? $conn->real_escape_string($_POST['divisi']) : '';
     $kategori = isset($_POST['kategori']) ? $conn->real_escape_string($_POST['kategori']) : 'Partisipasi';
 
     $file_media = "";
@@ -113,30 +111,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['type'])) {
                 if(file_exists($upload_dir . $old_file) && is_file($upload_dir . $old_file)) unlink($upload_dir . $old_file);
                 
                 if($type == 'sorotan') {
-                    $sql = "UPDATE sorotan SET judul='$judul', deskripsi='$deskripsi', tahun=$tahun, tanggal_kegiatan='$tanggal_kegiatan', tipe_media='$tipe_media', file_media='$file_media', divisi='$divisi' WHERE id=$id";
+                    $sql = "UPDATE sorotan SET judul='$judul', deskripsi='$deskripsi', tahun=$tahun, tanggal_kegiatan='$tanggal_kegiatan', file_media='$file_media' WHERE id=$id";
                 } elseif($type == 'jejak') {
-                    $sql = "UPDATE jejak SET judul='$judul', deskripsi='$deskripsi', tahun=$tahun, kategori='$kategori', tipe_media='$tipe_media', file_media='$file_media' WHERE id=$id";
+                    $sql = "UPDATE jejak SET judul='$judul', deskripsi='$deskripsi', tahun=$tahun, kategori='$kategori', file_media='$file_media' WHERE id=$id";
                 } else {
-                    $sql = "UPDATE beranda_foto SET caption='$judul', file_foto='$file_media' WHERE id=$id";
+                    $sql = "UPDATE foto_beranda SET judul='$judul', deskripsi='$deskripsi', file_media='$file_media' WHERE id=$id";
                 }
             } else {
                 if($type == 'sorotan') {
-                    $sql = "UPDATE sorotan SET judul='$judul', deskripsi='$deskripsi', tahun=$tahun, tanggal_kegiatan='$tanggal_kegiatan', tipe_media='$tipe_media', divisi='$divisi' WHERE id=$id";
+                    $sql = "UPDATE sorotan SET judul='$judul', deskripsi='$deskripsi', tahun=$tahun, tanggal_kegiatan='$tanggal_kegiatan' WHERE id=$id";
                 } elseif($type == 'jejak') {
-                    $sql = "UPDATE jejak SET judul='$judul', deskripsi='$deskripsi', tahun=$tahun, kategori='$kategori', tipe_media='$tipe_media' WHERE id=$id";
+                    $sql = "UPDATE jejak SET judul='$judul', deskripsi='$deskripsi', tahun=$tahun, kategori='$kategori' WHERE id=$id";
                 } else {
-                    $sql = "UPDATE beranda_foto SET caption='$judul' WHERE id=$id";
+                    $sql = "UPDATE foto_beranda SET judul='$judul', deskripsi='$deskripsi' WHERE id=$id";
                 }
             }
             if($conn->query($sql)) $_SESSION['admin_flash'] = "<div class='alert alert-success'>Data " . ucfirst($type) . " berhasil diperbarui.</div>";
         } else {
             // Add logic
             if($type == 'sorotan') {
-                $sql = "INSERT INTO sorotan (judul, deskripsi, tahun, tanggal_kegiatan, tipe_media, file_media, divisi) VALUES ('$judul', '$deskripsi', $tahun, '$tanggal_kegiatan', '$tipe_media', '$file_media', '$divisi')";
+                $sql = "INSERT INTO sorotan (judul, deskripsi, tahun, tanggal_kegiatan, file_media) VALUES ('$judul', '$deskripsi', $tahun, '$tanggal_kegiatan', '$file_media')";
             } elseif($type == 'jejak') {
-                $sql = "INSERT INTO jejak (kategori, judul, deskripsi, tahun, tipe_media, file_media) VALUES ('$kategori', '$judul', '$deskripsi', $tahun, '$tipe_media', '$file_media')";
+                $sql = "INSERT INTO jejak (kategori, judul, deskripsi, tahun, file_media) VALUES ('$kategori', '$judul', '$deskripsi', $tahun, '$file_media')";
             } else {
-                $sql = "INSERT INTO beranda_foto (caption, file_foto) VALUES ('$judul', '$file_media')";
+                $sql = "INSERT INTO foto_beranda (judul, deskripsi, file_media) VALUES ('$judul', '$deskripsi', '$file_media')";
             }
             if($conn->query($sql)) $_SESSION['admin_flash'] = "<div class='alert alert-success'>Data " . ucfirst($type) . " berhasil ditambahkan.</div>";
         }
@@ -159,7 +157,7 @@ if (isset($_GET['edit']) && isset($_GET['type'])) {
     } elseif ($edit_type == 'jejak') {
         $table = 'jejak';
     } else {
-        $table = 'beranda_foto';
+        $table = 'foto_beranda';
     }
     
     $res = $conn->query("SELECT * FROM $table WHERE id=$edit_id");
@@ -200,15 +198,19 @@ if (isset($_GET['edit']) && isset($_GET['type'])) {
         
         <?php if($active_tab == 'beranda'): ?>
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px;">
-            <div>
-                <label>Caption / Judul Foto</label>
-                <input type="text" name="judul" value="<?= $edit_mode ? htmlspecialchars($edit_data['caption']) : '' ?>" required class="form-control" placeholder="Contoh: Kegiatan Ibadah Pemuda">
+            <div style="grid-column: 1 / -1;">
+                <label>Judul Foto</label>
+                <input type="text" name="judul" value="<?= $edit_mode ? htmlspecialchars($edit_data['judul']) : '' ?>" required class="form-control" placeholder="Contoh: Kegiatan Ibadah Pemuda">
             </div>
-            <div>
+            <div style="grid-column: 1 / -1;">
+                <label>Deskripsi (Opsional)</label>
+                <textarea name="deskripsi" rows="2" class="form-control"><?= $edit_mode ? htmlspecialchars($edit_data['deskripsi']) : '' ?></textarea>
+            </div>
+            <div style="grid-column: 1 / -1;">
                 <label>Upload File Foto <?= $edit_mode ? '(Opsional)' : '' ?></label>
                 <input type="file" name="file_media" accept="image/*" <?= $edit_mode ? '' : 'required' ?> class="form-control" style="padding: 7px;">
                 <?php if($edit_mode): ?>
-                    <small style="color: var(--primary);">File saat ini: <?= htmlspecialchars($edit_data['file_foto']) ?></small>
+                    <small style="color: var(--primary);">File saat ini: <?= htmlspecialchars($edit_data['file_media']) ?></small>
                 <?php endif; ?>
             </div>
         </div>
@@ -245,29 +247,6 @@ if (isset($_GET['edit']) && isset($_GET['type'])) {
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; align-items: start;">
-            <div>
-                <label>Tipe Media</label>
-                <select name="tipe_media" class="form-control">
-                    <option value="foto" <?= ($edit_mode && $edit_data['tipe_media'] == 'foto') ? 'selected' : '' ?>>Foto (Gambar)</option>
-                    <option value="video" <?= ($edit_mode && $edit_data['tipe_media'] == 'video') ? 'selected' : '' ?>>Video</option>
-                </select>
-            </div>
-            
-            <?php if($active_tab == 'sorotan'): ?>
-            <div>
-                <label>Link Divisi (Opsional)</label>
-                <select name="divisi" class="form-control">
-                    <option value="">-- Bukan Program Divisi --</option>
-                    <?php 
-                    $divs = ['Rohani', 'Padus & Musik', 'Humas', 'Olahraga'];
-                    foreach($divs as $d) {
-                        $sel = ($edit_mode && $edit_data['divisi'] == $d) ? 'selected' : '';
-                        echo "<option value='$d' $sel>$d</option>";
-                    }
-                    ?>
-                </select>
-            </div>
-            <?php endif; ?>
 
             <div>
                 <label>Upload File <?= $edit_mode ? '(Opsional)' : '' ?></label>
@@ -295,10 +274,10 @@ if (isset($_GET['edit']) && isset($_GET['type'])) {
             <tr style="background: var(--bg-subtle); border-bottom: 2px solid var(--border-color);">
                 <th style="padding: 15px 20px; width: 5%;">No</th>
                 <th style="padding: 15px 20px; width: 15%;">Preview</th>
-                <th style="padding: 15px 20px; width: 45%;"><?= $active_tab == 'beranda' ? 'Caption' : 'Judul' ?></th>
+                <th style="padding: 15px 20px; width: 45%;">Judul</th>
                 <?php if($active_tab != 'beranda'): ?>
                 <th style="padding: 15px 20px; width: 15%;"><?= $active_tab == 'sorotan' ? 'Tanggal' : 'Kategori' ?></th>
-                <th style="padding: 15px 20px; width: 15%;">Tipe & Tahun</th>
+                <th style="padding: 15px 20px; width: 15%;">Tahun</th>
                 <?php else: ?>
                 <th style="padding: 15px 20px; width: 25%;">Tanggal Ditambahkan</th>
                 <?php endif; ?>
@@ -314,7 +293,7 @@ if (isset($_GET['edit']) && isset($_GET['type'])) {
                 $table = 'jejak';
                 $order = 'kategori ASC, tahun DESC';
             } else {
-                $table = 'beranda_foto';
+                $table = 'foto_beranda';
                 $order = 'id DESC';
             }
             
@@ -333,19 +312,15 @@ if (isset($_GET['edit']) && isset($_GET['type'])) {
                     $sub = mb_strimwidth(htmlspecialchars($row['deskripsi']), 0, 50, "...");
                 } else {
                     $img_path = '../assets/img/beranda/';
-                    $media_file = $row['file_foto'];
-                    $title = $row['caption'];
-                    $sub = '';
+                    $media_file = $row['file_media'];
+                    $title = $row['judul'];
+                    $sub = mb_strimwidth(htmlspecialchars($row['deskripsi']), 0, 50, "...");
                 }
             ?>
             <tr style="border-bottom: 1px solid var(--border-color);">
                 <td style="padding: 15px 20px; color: var(--text-muted);"><?= $no++ ?></td>
                 <td style="padding: 15px 20px;">
-                    <?php if($active_tab == 'beranda' || $row['tipe_media'] == 'foto'): ?>
-                        <img src="<?= $img_path . htmlspecialchars($media_file) ?>" alt="preview" style="width: 80px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc;">
-                    <?php else: ?>
-                        <div style="width: 80px; height: 60px; background: #334155; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white;"><i class="fa-solid fa-play"></i></div>
-                    <?php endif; ?>
+                    <img src="<?= $img_path . htmlspecialchars($media_file) ?>" alt="preview" style="width: 80px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc;">
                 </td>
                 <td style="padding: 15px 20px;">
                     <div style="font-weight: 600;"><?= htmlspecialchars($title) ?></div>
@@ -358,9 +333,6 @@ if (isset($_GET['edit']) && isset($_GET['type'])) {
                 <td style="padding: 15px 20px;">
                     <?php if($active_tab == 'sorotan'): ?>
                         <?= date('d/m/Y', strtotime($row['tanggal_kegiatan'])) ?>
-                        <?php if($row['divisi']): ?>
-                            <div class="badge" style="background: #e0e7ff; color: #4338ca; margin-top: 5px; display: inline-block;"><?= $row['divisi'] ?></div>
-                        <?php endif; ?>
                     <?php else: ?>
                         <span class="badge" style="background: <?= $row['kategori'] == 'Prestasi' ? '#fef08a' : '#bfdbfe' ?>; color: <?= $row['kategori'] == 'Prestasi' ? '#854d0e' : '#1e40af' ?>;">
                             <?= $row['kategori'] ?>
@@ -369,7 +341,6 @@ if (isset($_GET['edit']) && isset($_GET['type'])) {
                 </td>
                 <td style="padding: 15px 20px;">
                     <div style="font-weight: 600;"><?= $row['tahun'] ?></div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;"><i class="fa-solid <?= $row['tipe_media'] == 'foto' ? 'fa-camera' : 'fa-video' ?>"></i> <?= $row['tipe_media'] ?></div>
                 </td>
                 <?php else: ?>
                 <td style="padding: 15px 20px;">

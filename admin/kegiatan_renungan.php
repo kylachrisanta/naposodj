@@ -139,17 +139,7 @@ if ($manage_comments_id > 0) {
 if (isset($_GET['delete_renungan'])) {
     $id = (int)$_GET['delete_renungan'];
     
-    // Delete supporting image if exists
-    $res = $conn->query("SELECT gambar FROM renungan WHERE id=$id");
-    if ($res && $res->num_rows > 0) {
-        $row = $res->fetch_assoc();
-        if (!empty($row['gambar'])) {
-            $file_path = '../assets/img/renungan/' . $row['gambar'];
-            if (file_exists($file_path)) {
-                unlink($file_path);
-            }
-        }
-    }
+
     
     $conn->query("DELETE FROM renungan WHERE id=$id");
     $_SESSION['admin_flash'] = "<div style='color: #15803d; background: #dcfce7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #86efac;'><i class='fa-solid fa-circle-check'></i> Renungan berhasil dihapus.</div>";
@@ -165,97 +155,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_renungan'])) {
     $penulis = $conn->real_escape_string($_POST['penulis']);
     $tanggal_posting = $conn->real_escape_string($_POST['tanggal_posting']);
     
-    $error_renungan = "";
-    $gambar_filename = NULL;
-    $has_new_image = isset($_FILES['gambar']) && $_FILES['gambar']['error'] != UPLOAD_ERR_NO_FILE;
-    
-    if ($has_new_image) {
-        $file = $_FILES['gambar'];
-        $file_name = $file['name'];
-        $file_tmp = $file['tmp_name'];
-        $file_size = $file['size'];
-        $file_error = $file['error'];
-        
-        if ($file_error !== UPLOAD_ERR_OK) {
-            $error_renungan = "Gagal mengunggah gambar. Kode error: $file_error";
-        } else {
-            $allowed_exts = ['jpg', 'jpeg', 'png'];
-            $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-            if (!in_array($file_ext, $allowed_exts)) {
-                $error_renungan = "Format gambar tidak didukung. Harap unggah file JPG, JPEG, atau PNG.";
-            } elseif ($file_size > 5 * 1024 * 1024) {
-                $error_renungan = "Ukuran gambar terlalu besar. Maksimal 5MB.";
-            } else {
-                $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                $mime_type = finfo_file($finfo, $file_tmp);
-                finfo_close($finfo);
-                $allowed_mimes = ['image/jpeg', 'image/png'];
-                if (!in_array($mime_type, $allowed_mimes)) {
-                    $error_renungan = "Tipe file tidak valid. Harap unggah gambar JPG/JPEG atau PNG yang valid.";
-                }
-            }
-            
-            if (empty($error_renungan)) {
-                $target_dir = '../assets/img/renungan/';
-                if (!is_dir($target_dir)) {
-                    mkdir($target_dir, 0755, true);
-                }
-                
-                $new_filename = 'renungan_' . time() . '_' . rand(100, 999) . '.' . $file_ext;
-                $target_path = $target_dir . $new_filename;
-                
-                if (move_uploaded_file($file_tmp, $target_path)) {
-                    $gambar_filename = $new_filename;
-                } else {
-                    $error_renungan = "Gagal menyimpan file gambar.";
-                }
-            }
-        }
-    }
-    
-    if (!empty($error_renungan)) {
-        $_SESSION['admin_flash'] = "<div style='color: #b91c1c; background: #fee2e2; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #fecaca;'><i class='fa-solid fa-circle-xmark'></i> " . $error_renungan . "</div>";
-        header("Location: kegiatan_renungan.php");
-        exit();
-    }
-    
     if (isset($_POST['id_renungan']) && $_POST['id_renungan'] != '') {
         $id = (int)$_POST['id_renungan'];
-        
-        // Get existing image
-        $old_img_res = $conn->query("SELECT gambar FROM renungan WHERE id=$id");
-        $old_img = ($old_img_res && $old_img_res->num_rows > 0) ? $old_img_res->fetch_assoc()['gambar'] : NULL;
-        
-        $hapus_gambar = isset($_POST['hapus_gambar']) ? 1 : 0;
-        
-        if ($has_new_image) {
-            // Delete old file
-            if (!empty($old_img)) {
-                $old_file_path = '../assets/img/renungan/' . $old_img;
-                if (file_exists($old_file_path)) {
-                    unlink($old_file_path);
-                }
-            }
-            $sql = "UPDATE renungan SET judul='$judul', ayat_alkitab='$ayat_alkitab', isi_renungan='$isi_renungan', penulis='$penulis', tanggal_posting='$tanggal_posting', gambar='$gambar_filename' WHERE id=$id";
-        } elseif ($hapus_gambar) {
-            // Delete old file
-            if (!empty($old_img)) {
-                $old_file_path = '../assets/img/renungan/' . $old_img;
-                if (file_exists($old_file_path)) {
-                    unlink($old_file_path);
-                }
-            }
-            $sql = "UPDATE renungan SET judul='$judul', ayat_alkitab='$ayat_alkitab', isi_renungan='$isi_renungan', penulis='$penulis', tanggal_posting='$tanggal_posting', gambar=NULL WHERE id=$id";
-        } else {
-            $sql = "UPDATE renungan SET judul='$judul', ayat_alkitab='$ayat_alkitab', isi_renungan='$isi_renungan', penulis='$penulis', tanggal_posting='$tanggal_posting' WHERE id=$id";
-        }
+        $sql = "UPDATE renungan SET judul='$judul', ayat_alkitab='$ayat_alkitab', isi_renungan='$isi_renungan', penulis='$penulis', tanggal_posting='$tanggal_posting' WHERE id=$id";
         
         if ($conn->query($sql)) {
             $_SESSION['admin_flash'] = "<div style='color: #15803d; background: #dcfce7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #86efac;'><i class='fa-solid fa-circle-check'></i> Renungan berhasil diperbarui.</div>";
         }
     } else {
-        $gambar_val = $gambar_filename ? "'$gambar_filename'" : "NULL";
-        $sql = "INSERT INTO renungan (judul, ayat_alkitab, isi_renungan, penulis, tanggal_posting, gambar) VALUES ('$judul', '$ayat_alkitab', '$isi_renungan', '$penulis', '$tanggal_posting', $gambar_val)";
+        $sql = "INSERT INTO renungan (judul, ayat_alkitab, isi_renungan, penulis, tanggal_posting) VALUES ('$judul', '$ayat_alkitab', '$isi_renungan', '$penulis', '$tanggal_posting')";
         if ($conn->query($sql)) {
             $_SESSION['admin_flash'] = "<div style='color: #15803d; background: #dcfce7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #86efac;'><i class='fa-solid fa-circle-check'></i> Renungan berhasil ditambahkan.</div>";
         }
@@ -267,7 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_renungan'])) {
 // Edit Mode Check
 $edit_mode = false;
 $edit_data = [
-    'id' => '', 'judul' => '', 'ayat_alkitab' => '', 'isi_renungan' => '', 'penulis' => '', 'tanggal_posting' => '', 'gambar' => NULL
+    'id' => '', 'judul' => '', 'ayat_alkitab' => '', 'isi_renungan' => '', 'penulis' => '', 'tanggal_posting' => ''
 ];
 if (isset($_GET['edit_renungan'])) {
     $id = (int)$_GET['edit_renungan'];
@@ -292,7 +200,7 @@ if (isset($_GET['edit_renungan'])) {
     <div style="background: white; padding: 25px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);">
         <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-book-open-reader" style="color: var(--primary);"></i> <?= $edit_mode ? 'Ubah Renungan' : 'Tambah Renungan Baru' ?></h3>
         
-        <form action="kegiatan_renungan.php" method="POST" enctype="multipart/form-data">
+        <form action="kegiatan_renungan.php" method="POST">
             <input type="hidden" name="id_renungan" value="<?= $edit_data['id'] ?>">
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 15px;">
@@ -322,36 +230,7 @@ if (isset($_GET['edit_renungan'])) {
                 <textarea name="isi_renungan" rows="12" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: var(--font-body); line-height: 1.6;"><?= htmlspecialchars($edit_data['isi_renungan']) ?></textarea>
             </div>
             
-            <div style="margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; align-items: flex-start;">
-                <div>
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Gambar Pendukung <span style="font-weight: 400; color: var(--text-muted); font-size: 0.8rem;">(Opsional)</span></label>
-                    <input type="file" name="gambar" id="gambar_renungan" accept="image/jpeg,image/png" onchange="previewRenunganImage(event)" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background: white; font-size: 0.9rem; cursor: pointer;">
-                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Mendukung JPG, JPEG, PNG. Maksimal ukuran file 5MB.</p>
-                </div>
-                
-                <div>
-                    <!-- Client-side preview -->
-                    <div id="preview_container" style="display: none; border: 1px dashed var(--border-color); padding: 10px; border-radius: 6px; text-align: center; background: #f8fafc;">
-                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Pratinjau Gambar Baru:</span>
-                        <img id="image_preview" src="" alt="Pratinjau" style="max-height: 120px; border-radius: 6px; box-shadow: var(--shadow-sm); max-width: 100%; object-fit: contain;">
-                    </div>
-                    
-                    <?php if ($edit_mode && !empty($edit_data['gambar'])): ?>
-                    <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; align-items: center; gap: 15px;">
-                        <div style="width: 50px; height: 50px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color);">
-                            <img src="../assets/img/renungan/<?= htmlspecialchars($edit_data['gambar']) ?>" alt="Gambar Aktif" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                        <div style="flex: 1;">
-                            <span style="font-size: 0.85rem; color: var(--text-muted); display: block; font-weight: 500;">Gambar Aktif saat ini</span>
-                            <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
-                                <input type="checkbox" name="hapus_gambar" id="hapus_gambar" value="1" style="width: 15px; height: 15px; cursor: pointer;">
-                                <label for="hapus_gambar" style="font-size: 0.85rem; color: #b91c1c; font-weight: 600; cursor: pointer;">Hapus Gambar Aktif</label>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endif; ?>
-                </div>
-            </div>
+
             
             <div style="display: flex; gap: 10px;">
                 <button type="submit" name="submit_renungan" class="btn-primary"><?= $edit_mode ? 'Simpan Perubahan' : 'Bagikan Renungan' ?></button>
@@ -372,7 +251,7 @@ if (isset($_GET['edit_renungan'])) {
         <table style="width: 100%; border-collapse: collapse; text-align: left;">
             <thead>
                 <tr style="border-bottom: 2px solid var(--border-color); background: #f8fafc;">
-                    <th style="padding: 15px 20px; width: 80px;">Gambar</th>
+
                     <th style="padding: 15px 20px;">Judul & Ayat</th>
                     <th style="padding: 15px 20px; width: 180px;">Penulis & Tanggal</th>
                     <th style="padding: 15px 20px; width: 140px; text-align: center;">Komentar</th>
@@ -388,17 +267,7 @@ if (isset($_GET['edit_renungan'])) {
                 while ($row = $renungans->fetch_assoc()):
                 ?>
                 <tr style="border-bottom: 1px solid var(--border-color); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#fafafa'" onmouseout="this.style.backgroundColor='transparent'">
-                    <td style="padding: 15px 20px; vertical-align: middle;">
-                        <?php if (!empty($row['gambar'])): ?>
-                            <div style="width: 50px; height: 50px; border-radius: 4px; overflow: hidden; border: 1px solid var(--border-color);">
-                                <img src="../assets/img/renungan/<?= htmlspecialchars($row['gambar']) ?>" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
-                            </div>
-                        <?php else: ?>
-                            <div style="width: 50px; height: 50px; border-radius: 4px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; color: #94a3b8;" title="Tidak ada gambar">
-                                <i class="fa-solid fa-image"></i>
-                            </div>
-                        <?php endif; ?>
-                    </td>
+
                     <td style="padding: 15px 20px; vertical-align: middle;">
                         <strong style="color: var(--text-main); display: block; font-size: 1.05rem;"><?= htmlspecialchars($row['judul']) ?></strong>
                         <span style="font-size: 0.85rem; color: var(--primary); font-weight: 600;"><i class="fa-solid fa-quote-left" style="font-size: 0.7rem; margin-right: 4px;"></i><?= htmlspecialchars($row['ayat_alkitab']) ?></span>
@@ -433,34 +302,6 @@ if (isset($_GET['edit_renungan'])) {
     </div>
 </div>
 
-<script>
-function previewRenunganImage(event) {
-    const input = event.target;
-    const previewContainer = document.getElementById('preview_container');
-    const previewImage = document.getElementById('image_preview');
-    
-    if (input.files && input.files[0]) {
-        const file = input.files[0];
-        
-        if (file.size > 5 * 1024 * 1024) {
-            alert('Ukuran file terlalu besar! Maksimal ukuran file adalah 5MB.');
-            input.value = '';
-            previewContainer.style.display = 'none';
-            previewImage.src = '';
-            return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            previewImage.src = e.target.result;
-            previewContainer.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-    } else {
-        previewContainer.style.display = 'none';
-        previewImage.src = '';
-    }
-}
-</script>
+
 
 <?php require_once '../includes/admin_footer.php'; ?>

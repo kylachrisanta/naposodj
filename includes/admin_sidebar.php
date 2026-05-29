@@ -1,6 +1,6 @@
 <aside class="admin-sidebar">
     <div class="sidebar-header">
-        <i class="fa-solid fa-church" style="color: #60a5fa;"></i>
+        <img src="../assets/img/beranda/logo_naposo.png" alt="Logo Naposo" style="height: 35px; width: auto; object-fit: contain;">
         <span>Admin Naposo</span>
     </div>
     

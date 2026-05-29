@@ -80,7 +80,6 @@ CREATE TABLE `sorotan` (
   `judul` varchar(255) NOT NULL,
   `deskripsi` text NOT NULL,
   `tahun` year(4) NOT NULL,
-  `tipe_media` enum('foto','video') NOT NULL DEFAULT 'foto',
   `file_media` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
@@ -97,7 +96,6 @@ CREATE TABLE `jejak` (
   `judul` varchar(255) NOT NULL,
   `deskripsi` text NOT NULL,
   `tahun` year(4) NOT NULL,
-  `tipe_media` enum('foto','video') NOT NULL DEFAULT 'foto',
   `file_media` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
@@ -106,14 +104,29 @@ CREATE TABLE `jejak` (
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `sejarah`
+-- Struktur dari tabel `program_kerja` (Program Kerja Divisi)
 --
-CREATE TABLE `sejarah` (
+CREATE TABLE `program_kerja` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `kategori` enum('Gereja','Naposo') NOT NULL,
-  `konten` text NOT NULL,
-  `foto` varchar(255) DEFAULT NULL,
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `divisi` varchar(100) NOT NULL,
+  `judul` varchar(255) NOT NULL,
+  `foto` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `foto_beranda` (Galeri Beranda)
+--
+CREATE TABLE `foto_beranda` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `judul` varchar(255) NOT NULL,
+  `deskripsi` varchar(255) NOT NULL,
+  `file_media` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

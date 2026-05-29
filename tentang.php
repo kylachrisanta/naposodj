@@ -5,11 +5,11 @@ include 'includes/header.php';
 
 <!-- Hero Section -->
 <section class="hero">
-    <div class="hero-bg" style="background: url('assets/img/hero_bg.jpg') center/cover;"></div>
+    <div class="hero-bg" style="background: url('assets/img/tentang/gereja.jpeg') center/cover;"></div>
     <div class="hero-overlay"></div>
     <div class="container hero-content">
-        <h1 class="hero-title">Tentang Kami</h1>
-        <p class="hero-subtitle">Mengenal lebih dekat persekutuan pemuda-pemudi HKBP Duren Jaya yang melayani dengan sukacita, bertumbuh bersama di dalam iman, dan menjadi berkat bagi sesama.</p>
+        <h1 class="hero-title">Gereja HKBP Duren Jaya</h1>
+        <p class="hero-subtitle">“Dan marilah kita saling memperhatikan supaya kita saling mendorong dalam kasih dan dalam pekerjaan baik. Janganlah kita menjauhkan diri dari pertemuan-pertemuan ibadah kita.”</p>
     </div>
 </section>
 
@@ -329,14 +329,14 @@ const divisionData = {
         }
         echo "],";
         
-        // Fetch program kerja from sorotan
+        // Fetch program kerja from program_kerja
         echo "programs: [";
-        $stmt_p = $conn->prepare("SELECT * FROM sorotan WHERE divisi = ? ORDER BY tanggal_kegiatan DESC");
+        $stmt_p = $conn->prepare("SELECT * FROM program_kerja WHERE divisi = ? ORDER BY created_at DESC");
         $stmt_p->bind_param("s", $div);
         $stmt_p->execute();
         $res_proker = $stmt_p->get_result();
         while($p = $res_proker->fetch_assoc()) {
-            echo "{judul: '" . addslashes($p['judul']) . "', foto: 'assets/img/sorotan/" . $p['file_media'] . "'},";
+            echo "{judul: '" . addslashes($p['judul']) . "', foto: 'assets/img/proker/" . $p['foto'] . "'},";
         }
         echo "]";
         
@@ -373,7 +373,7 @@ function openDivisionModal(divName) {
     }
 
     // Render Programs
-    html += `<h3>Program Kerja & Dokumentasi</h3>`;
+    html += `<h3>Program Kerja</h3>`;
     if (data.programs.length > 0) {
         html += `<div class="proker-gallery">`;
         data.programs.forEach(p => {

@@ -103,15 +103,7 @@ $renungan_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
                 <!-- Title -->
                 <h2 style="font-family: var(--font-heading); font-size: 2.2rem; line-height: 1.2; color: var(--text-main); margin-bottom: 20px;"><?= htmlspecialchars($ren['judul']) ?></h2>
                 
-                <!-- Image -->
-                <?php if (!empty($ren['gambar'])): ?>
-                    <?php $img_path = 'assets/img/renungan/' . $ren['gambar']; ?>
-                    <?php if (file_exists($img_path)): ?>
-                        <div style="margin-bottom: 30px; border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); cursor: pointer;" class="ren-image-container" onclick="openLightbox('<?= $img_path ?>')">
-                            <img src="<?= $img_path ?>" alt="Gambar Renungan" style="width: 100%; height: auto; max-height: 450px; object-fit: cover; transition: transform 0.5s ease;" class="ren-card-img">
-                        </div>
-                    <?php endif; ?>
-                <?php endif; ?>
+
                 
                 <!-- Scripture Quote Block -->
                 <div style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%); border-left: 5px solid var(--primary); padding: 20px 25px; border-radius: 0 var(--radius-md) var(--radius-md) 0; margin-bottom: 30px; box-shadow: var(--shadow-sm);">
@@ -202,15 +194,7 @@ $renungan_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
                         </a>
                     </h3>
 
-                    <!-- Image -->
-                    <?php if (!empty($row['gambar'])): ?>
-                        <?php $img_path = 'assets/img/renungan/' . $row['gambar']; ?>
-                        <?php if (file_exists($img_path)): ?>
-                            <div style="border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); cursor: pointer;" class="ren-image-container" onclick="openLightbox('<?= $img_path ?>')">
-                                <img src="<?= $img_path ?>" alt="Gambar Renungan" style="width: 100%; height: auto; max-height: 400px; object-fit: cover; transition: transform 0.5s ease;" class="ren-card-img">
-                            </div>
-                        <?php endif; ?>
-                    <?php endif; ?>
+
 
                     <!-- Scripture Quote Block -->
                     <div style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%); border-left: 5px solid var(--primary); padding: 15px 20px; border-radius: 0 var(--radius-md) var(--radius-md) 0; box-shadow: var(--shadow-sm);">
@@ -243,52 +227,15 @@ $renungan_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
     </section>
 <?php endif; ?>
 
-<!-- Lightbox Modal for Renungan Image Preview -->
-<div id="imageLightbox" onclick="closeLightbox(event)" style="display:none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); z-index: 10000; backdrop-filter: blur(8px); justify-content: center; align-items: center; padding: 20px; cursor: zoom-out;">
-    <div style="position: relative; max-width: 90%; max-height: 90%; cursor: default; display: flex; justify-content: center; align-items: center; animation: fadeIn 0.3s ease;" onclick="event.stopPropagation()">
-        <!-- Close Button -->
-        <button onclick="closeLightbox(event)" style="position: absolute; top: -50px; right: 0; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 40px; height: 40px; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 1.25rem;" onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='scale(1)'">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-        <!-- Preview Image -->
-        <img id="lightboxImage" src="" alt="Pratinjau Gambar" style="max-width: 100%; max-height: 85vh; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); display: block; border: 4px solid white; object-fit: contain;">
-    </div>
-</div>
+
 
 <script>
-function openLightbox(imageSrc) {
-    const lightbox = document.getElementById('imageLightbox');
-    const lightboxImg = document.getElementById('lightboxImage');
-    lightboxImg.src = imageSrc;
-    lightbox.style.display = 'flex';
-    document.body.style.overflow = 'hidden'; // prevent background scrolling
-}
-
-function closeLightbox(event) {
-    const lightbox = document.getElementById('imageLightbox');
-    lightbox.style.display = 'none';
-    document.body.style.overflow = 'auto'; // restore scrolling
-}
-
-// Close lightbox on Escape
-window.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        closeLightbox();
-    }
-});
 </script>
 
 <style>
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
-}
-.ren-image-container {
-    overflow: hidden;
-    position: relative;
-}
-.ren-image-container:hover .ren-card-img {
-    transform: scale(1.015);
 }
 </style>
 

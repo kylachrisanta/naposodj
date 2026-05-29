@@ -409,6 +409,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_wa_custom'])) {
                                     </a>
                                 </div>
                             <?php endif; ?>
+                            
+                            <?php
+                            $reaksi_stats = $conn->query("SELECT emoticon, COUNT(*) as count FROM warta_reaksi WHERE warta_id = {$row['id']} GROUP BY emoticon");
+                            if ($reaksi_stats && $reaksi_stats->num_rows > 0):
+                            ?>
+                                <div style="margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap;">
+                                <?php while($r = $reaksi_stats->fetch_assoc()): ?>
+                                    <span title="Total Reaksi <?= $r['emoticon'] ?>" style="font-size: 0.75rem; background: #f8fafc; border: 1px solid var(--border-color); color: var(--text-muted); padding: 2px 6px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+                                        <?= $r['emoticon'] ?> <?= $r['count'] ?>
+                                    </span>
+                                <?php endwhile; ?>
+                                </div>
+                            <?php endif; ?>
                         </td>
                         <td style="padding: 15px 20px; color: var(--text-muted); font-size: 0.9rem; vertical-align: top;">
                             <?= date('d M Y, H:i', strtotime($row['tanggal_posting'])) ?>
