@@ -15,6 +15,11 @@ $is_admin = isset($_SESSION['admin_id']);
 $error = "";
 $success = "";
 
+if (isset($_SESSION['profil_flash_success'])) {
+    $success = $_SESSION['profil_flash_success'];
+    unset($_SESSION['profil_flash_success']);
+}
+
 // Ambil data user saat ini
 $stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->bind_param("i", $user_id);
@@ -319,6 +324,92 @@ include 'includes/header.php';
 
             </div>
         </form>
+
+        <!-- Section: Riwayat Pendaftaran -->
+        <div class="card" style="padding: 35px; background: white; margin-top: 40px; box-shadow: var(--shadow-sm);">
+            <h3 style="font-family: var(--font-heading); color: var(--text-main); font-size: 1.3rem; margin-bottom: 25px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary);"></i> Riwayat Pendaftaran
+            </h3>
+            
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; min-width: 650px;">
+                    <thead>
+                        <tr style="background: var(--bg-subtle); border-bottom: 2px solid var(--border-color);">
+                            <th style="padding: 12px 15px; font-weight: 600; color: var(--text-main); border-top-left-radius: 8px;">Nama Kegiatan</th>
+                            <th style="padding: 12px 15px; font-weight: 600; color: var(--text-main);">Tgl Daftar</th>
+                            <th style="padding: 12px 15px; font-weight: 600; color: var(--text-main);">Status Pendaftaran</th>
+                            <th style="padding: 12px 15px; font-weight: 600; color: var(--text-main);">Status Pembayaran</th>
+                            <th style="padding: 12px 15px; font-weight: 600; color: var(--text-main); text-align: center; border-top-right-radius: 8px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $riwayat_stmt = $conn->prepare("SELECT pw.*, w.judul, w.tanggal_posting, w.isi_pengumuman FROM pendaftaran_warta pw JOIN warta w ON pw.warta_id = w.id WHERE pw.user_id = ? ORDER BY pw.created_at DESC");
+                        $riwayat_stmt->bind_param("i", $user_id);
+                        $riwayat_stmt->execute();
+                        $riwayat_res = $riwayat_stmt->get_result();
+                        
+                        if ($riwayat_res->num_rows > 0):
+                            while($row = $riwayat_res->fetch_assoc()):
+                                $status_pembayaran = $row['status_pembayaran'];
+                                $status_pendaftaran = ($status_pembayaran == 'Ditolak') ? 'Ditolak' : 'Terdaftar';
+                                
+                                if ($status_pembayaran == 'Terdaftar') {
+                                    $badge_bg = '#e0e7ff'; $badge_fg = '#4f46e5';
+                                } elseif ($status_pembayaran == 'Lunas') {
+                                    $badge_bg = '#dcfce7'; $badge_fg = '#15803d';
+                                } elseif ($status_pembayaran == 'Menunggu Verifikasi') {
+                                    $badge_bg = '#fef3c7'; $badge_fg = '#d97706';
+                                } elseif ($status_pembayaran == 'Bayar di Tempat') {
+                                    $badge_bg = '#dbeafe'; $badge_fg = '#1d4ed8';
+                                } elseif ($status_pembayaran == 'Ditolak') {
+                                    $badge_bg = '#fee2e2'; $badge_fg = '#b91c1c';
+                                } else {
+                                    $badge_bg = '#f1f5f9'; $badge_fg = '#475569';
+                                }
+                                
+                                $pend_bg = ($status_pendaftaran == 'Ditolak') ? '#fee2e2' : '#dcfce7';
+                                $pend_fg = ($status_pendaftaran == 'Ditolak') ? '#b91c1c' : '#15803d';
+                        ?>
+                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                            <td style="padding: 15px;">
+                                <div style="font-weight: 600; color: var(--text-main); margin-bottom: 4px;"><?= htmlspecialchars($row['judul']) ?></div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);"><i class="fa-regular fa-calendar"></i> <?= date('d M Y', strtotime($row['tanggal_posting'])) ?></div>
+                            </td>
+                            <td style="padding: 15px; color: var(--text-muted); font-size: 0.9rem;">
+                                <?= date('d M Y', strtotime($row['created_at'])) ?><br>
+                                <small style="color: var(--text-muted); opacity: 0.8;"><?= date('H:i', strtotime($row['created_at'])) ?> WIB</small>
+                            </td>
+                            <td style="padding: 15px;">
+                                <span style="display: inline-flex; align-items: center; gap: 4px; background: <?= $pend_bg ?>; color: <?= $pend_fg ?>; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+                                    <?php if($status_pendaftaran == 'Terdaftar') echo '<i class="fa-solid fa-check"></i>'; else echo '<i class="fa-solid fa-xmark"></i>'; ?>
+                                    <?= $status_pendaftaran ?>
+                                </span>
+                            </td>
+                            <td style="padding: 15px;">
+                                <span style="display: inline-block; background: <?= $badge_bg ?>; color: <?= $badge_fg ?>; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+                                    <?= htmlspecialchars($status_pembayaran) ?>
+                                </span>
+                            </td>
+                            <td style="padding: 15px; text-align: center;">
+                                <button type="button" onclick='openDetailRiwayat(<?= json_encode($row) ?>)' class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; white-space: nowrap; height: auto;">
+                                    <i class="fa-regular fa-eye"></i> Lihat Detail
+                                </button>
+                            </td>
+                        </tr>
+                        <?php endwhile; else: ?>
+                        <tr>
+                            <td colspan="5" style="padding: 30px; text-align: center; color: var(--text-muted);">
+                                <i class="fa-solid fa-folder-open" style="font-size: 2rem; color: var(--border-color); margin-bottom: 10px; display: block;"></i>
+                                Belum ada riwayat pendaftaran.
+                            </td>
+                        </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -363,6 +454,60 @@ select.form-control-profile {
 }
 </style>
 
+<!-- Modal Detail Riwayat Pendaftaran -->
+<div id="detailRiwayatModal" style="display:none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; backdrop-filter: blur(8px); justify-content: center; align-items: center; padding: 20px; overflow-y: auto;">
+    <div style="background: white; max-width: 600px; width: 100%; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); overflow: hidden; animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); margin: auto;">
+        
+        <!-- Header -->
+        <div style="background: var(--gradient-primary); padding: 20px 25px; display: flex; justify-content: space-between; align-items: center; color: white;">
+            <h3 style="font-family: var(--font-heading); font-size: 1.35rem; margin: 0; color: white;">Detail Pendaftaran</h3>
+            <button onclick="closeDetailRiwayat()" style="background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 32px; height: 32px; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        
+        <!-- Body -->
+        <div style="padding: 25px;">
+            <div style="margin-bottom: 20px;">
+                <h4 id="detail_judul" style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--text-main); margin-bottom: 5px;"></h4>
+                <div style="font-size: 0.85rem; color: var(--text-muted);"><i class="fa-regular fa-calendar"></i> Tanggal Kegiatan: <span id="detail_tgl_kegiatan"></span></div>
+            </div>
+            
+            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; max-height: 150px; overflow-y: auto; white-space: pre-wrap;" id="detail_deskripsi">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Tanggal Daftar</div>
+                    <div style="font-size: 0.95rem; color: var(--text-main); font-weight: 500;" id="detail_tgl_daftar"></div>
+                </div>
+                <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Metode Pembayaran</div>
+                    <div style="font-size: 0.95rem; color: var(--text-main); font-weight: 500;" id="detail_metode"></div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 12px 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+                <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Status Pembayaran</div>
+                <div id="detail_status_badge"></div>
+            </div>
+
+            <div id="detail_bukti_container" style="display: none;">
+                <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 10px;">Bukti Pembayaran</div>
+                <div style="border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color);">
+                    <img id="detail_bukti_img" src="" alt="Bukti Pembayaran" style="width: 100%; height: auto; max-height: 300px; object-fit: contain; background: #f1f5f9; display: block;">
+                </div>
+            </div>
+            
+        </div>
+        
+        <!-- Footer -->
+        <div style="background: var(--bg-subtle); padding: 15px 25px; border-top: 1px solid var(--border-color); text-align: right;">
+            <button onclick="closeDetailRiwayat()" class="btn-secondary" style="padding: 8px 20px; font-size: 0.9rem; border-radius: 6px;">Tutup</button>
+        </div>
+    </div>
+</div>
+
 <script>
 function previewImage(input) {
     if (input.files && input.files[0]) {
@@ -373,6 +518,63 @@ function previewImage(input) {
         reader.readAsDataURL(input.files[0]);
     }
 }
+
+function openDetailRiwayat(data) {
+    document.getElementById('detail_judul').innerText = data.judul;
+    
+    // Format dates
+    const tglKeg = new Date(data.tanggal_posting);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+    document.getElementById('detail_tgl_kegiatan').innerText = `${tglKeg.getDate()} ${months[tglKeg.getMonth()]} ${tglKeg.getFullYear()}`;
+    
+    const tglDaf = new Date(data.created_at);
+    document.getElementById('detail_tgl_daftar').innerText = `${tglDaf.getDate()} ${months[tglDaf.getMonth()]} ${tglDaf.getFullYear()}, ${String(tglDaf.getHours()).padStart(2, '0')}:${String(tglDaf.getMinutes()).padStart(2, '0')} WIB`;
+    
+    document.getElementById('detail_deskripsi').innerText = data.isi_pengumuman;
+    document.getElementById('detail_metode').innerText = data.metode_pembayaran;
+    
+    // Status Badge
+    let badgeBg = '#f1f5f9', badgeFg = '#475569';
+    if (data.status_pembayaran == 'Terdaftar') {
+        badgeBg = '#e0e7ff'; badgeFg = '#4f46e5';
+    } else if (data.status_pembayaran == 'Lunas') {
+        badgeBg = '#dcfce7'; badgeFg = '#15803d';
+    } else if (data.status_pembayaran == 'Menunggu Verifikasi') {
+        badgeBg = '#fef3c7'; badgeFg = '#d97706';
+    } else if (data.status_pembayaran == 'Bayar di Tempat') {
+        badgeBg = '#dbeafe'; badgeFg = '#1d4ed8';
+    } else if (data.status_pembayaran == 'Ditolak') {
+        badgeBg = '#fee2e2'; badgeFg = '#b91c1c';
+    }
+    
+    document.getElementById('detail_status_badge').innerHTML = `<span style="display: inline-block; background: ${badgeBg}; color: ${badgeFg}; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">${data.status_pembayaran}</span>`;
+    
+    // Bukti Pembayaran
+    const buktiContainer = document.getElementById('detail_bukti_container');
+    const buktiImg = document.getElementById('detail_bukti_img');
+    
+    if (data.bukti_pembayaran) {
+        buktiImg.src = 'assets/img/bukti_pembayaran/' + data.bukti_pembayaran;
+        buktiContainer.style.display = 'block';
+    } else {
+        buktiContainer.style.display = 'none';
+        buktiImg.src = '';
+    }
+    
+    document.getElementById('detailRiwayatModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDetailRiwayat() {
+    document.getElementById('detailRiwayatModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+window.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeDetailRiwayat();
+    }
+});
 </script>
 
 <?php include 'includes/footer.php'; ?>

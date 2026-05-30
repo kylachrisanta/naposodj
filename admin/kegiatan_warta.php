@@ -64,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_warta'])) {
     $judul = $conn->real_escape_string($_POST['judul']);
     $isi_pengumuman = $conn->real_escape_string($_POST['isi_pengumuman']);
     $butuh_pendaftaran = isset($_POST['butuh_pendaftaran']) ? 1 : 0;
+    $biaya = $butuh_pendaftaran ? (int)$_POST['biaya'] : 0;
     
     $error_warta = "";
     $gambar_filename = NULL;
@@ -136,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_warta'])) {
                     unlink($old_file_path);
                 }
             }
-            $sql = "UPDATE warta SET judul='$judul', isi_pengumuman='$isi_pengumuman', butuh_pendaftaran=$butuh_pendaftaran, gambar='$gambar_filename' WHERE id=$id";
+            $sql = "UPDATE warta SET judul='$judul', isi_pengumuman='$isi_pengumuman', butuh_pendaftaran=$butuh_pendaftaran, biaya=$biaya, gambar='$gambar_filename' WHERE id=$id";
         } elseif ($hapus_gambar) {
             // Delete old file
             if (!empty($old_img)) {
@@ -145,9 +146,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_warta'])) {
                     unlink($old_file_path);
                 }
             }
-            $sql = "UPDATE warta SET judul='$judul', isi_pengumuman='$isi_pengumuman', butuh_pendaftaran=$butuh_pendaftaran, gambar=NULL WHERE id=$id";
+            $sql = "UPDATE warta SET judul='$judul', isi_pengumuman='$isi_pengumuman', butuh_pendaftaran=$butuh_pendaftaran, biaya=$biaya, gambar=NULL WHERE id=$id";
         } else {
-            $sql = "UPDATE warta SET judul='$judul', isi_pengumuman='$isi_pengumuman', butuh_pendaftaran=$butuh_pendaftaran WHERE id=$id";
+            $sql = "UPDATE warta SET judul='$judul', isi_pengumuman='$isi_pengumuman', butuh_pendaftaran=$butuh_pendaftaran, biaya=$biaya WHERE id=$id";
         }
         
         if($conn->query($sql)) {
@@ -155,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_warta'])) {
         }
     } else {
         $gambar_val = $gambar_filename ? "'$gambar_filename'" : "NULL";
-        $sql = "INSERT INTO warta (judul, isi_pengumuman, butuh_pendaftaran, gambar) VALUES ('$judul', '$isi_pengumuman', $butuh_pendaftaran, $gambar_val)";
+        $sql = "INSERT INTO warta (judul, isi_pengumuman, butuh_pendaftaran, biaya, gambar) VALUES ('$judul', '$isi_pengumuman', $butuh_pendaftaran, $biaya, $gambar_val)";
         if($conn->query($sql)) {
             $_SESSION['admin_flash'] = "<div style='color: #15803d; background: #dcfce7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #86efac;'><i class='fa-solid fa-circle-check'></i> Warta berhasil ditambahkan.</div>";
         }
@@ -182,7 +183,7 @@ if (isset($_GET['edit_kegiatan'])) {
 // Check Edit Mode Warta
 $edit_warta_mode = false;
 $edit_warta_data = [
-    'id' => '', 'judul' => '', 'isi_pengumuman' => '', 'butuh_pendaftaran' => 0, 'gambar' => NULL
+    'id' => '', 'judul' => '', 'isi_pengumuman' => '', 'butuh_pendaftaran' => 0, 'biaya' => 0, 'gambar' => NULL
 ];
 if (isset($_GET['edit_warta'])) {
     $id = (int)$_GET['edit_warta'];
@@ -305,9 +306,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_wa_custom'])) {
             </div>
             <?php endif; ?>
             
-            <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-                <input type="checkbox" name="butuh_pendaftaran" id="butuh_pendaftaran" value="1" <?= ($edit_warta_data['butuh_pendaftaran'] ?? 0) == 1 ? 'checked' : '' ?> style="width: 18px; height: 18px; cursor: pointer;">
+            <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" name="butuh_pendaftaran" id="butuh_pendaftaran" onchange="toggleBiayaField()" value="1" <?= ($edit_warta_data['butuh_pendaftaran'] ?? 0) == 1 ? 'checked' : '' ?> style="width: 18px; height: 18px; cursor: pointer;">
                 <label for="butuh_pendaftaran" style="font-weight: 500; cursor: pointer; color: var(--text-main);">Butuh Pendaftaran Peserta</label>
+            </div>
+            
+            <div id="biaya_field" style="margin-bottom: 20px; display: <?= ($edit_warta_data['butuh_pendaftaran'] ?? 0) == 1 ? 'block' : 'none' ?>; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid var(--border-color);">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Biaya Pendaftaran (Rp)</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: 600; color: var(--text-muted);">Rp</span>
+                    <input type="number" name="biaya" value="<?= htmlspecialchars($edit_warta_data['biaya'] ?? 0) ?>" min="0" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                </div>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">Biarkan 0 atau kosongkan jika kegiatan ini gratis.</p>
             </div>
             
             <div style="display: flex; gap: 10px;">
@@ -534,6 +544,10 @@ function previewWartaImage(event) {
         previewContainer.style.display = 'none';
         previewImage.src = '';
     }
+}
+function toggleBiayaField() {
+    const isChecked = document.getElementById('butuh_pendaftaran').checked;
+    document.getElementById('biaya_field').style.display = isChecked ? 'block' : 'none';
 }
 </script>
 

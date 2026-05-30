@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_status'])) {
     $pendaftaran_id = (int)$_POST['pendaftaran_id'];
     $status = $conn->real_escape_string($_POST['status']);
     
-    $valid_statuses = ['Menunggu Verifikasi', 'Lunas', 'Ditolak', 'Bayar di Tempat'];
+    $valid_statuses = ['Menunggu Verifikasi', 'Lunas', 'Ditolak', 'Bayar di Tempat', 'Terdaftar'];
     if (in_array($status, $valid_statuses)) {
         $conn->query("UPDATE pendaftaran_warta SET status_pembayaran='$status' WHERE id=$pendaftaran_id");
         $_SESSION['admin_flash'] = "<div style='color: #15803d; background: #dcfce7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #86efac;'><i class='fa-solid fa-circle-check'></i> Status pembayaran berhasil diperbarui.</div>";
@@ -67,7 +67,8 @@ $stats = [
     'lunas' => 0,
     'menunggu' => 0,
     'bayar_di_tempat' => 0,
-    'ditolak' => 0
+    'ditolak' => 0,
+    'terdaftar' => 0
 ];
 $stat_res = $conn->query("SELECT status_pembayaran, COUNT(*) as count FROM pendaftaran_warta WHERE warta_id = $warta_id GROUP BY status_pembayaran");
 while ($stat_row = $stat_res->fetch_assoc()) {
@@ -78,6 +79,7 @@ while ($stat_row = $stat_res->fetch_assoc()) {
     elseif ($status == 'Menunggu Verifikasi') $stats['menunggu'] = $count;
     elseif ($status == 'Bayar di Tempat') $stats['bayar_di_tempat'] = $count;
     elseif ($status == 'Ditolak') $stats['ditolak'] = $count;
+    elseif ($status == 'Terdaftar') $stats['terdaftar'] = $count;
 }
 ?>
 
@@ -112,6 +114,10 @@ while ($stat_row = $stat_res->fetch_assoc()) {
     <div style="background: white; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
         <span style="font-size: 1.8rem; font-weight: 700; color: #2563eb;"><?= $stats['bayar_di_tempat'] ?></span>
         <span style="font-size: 0.85rem; color: #2563eb; font-weight: 600; margin-top: 5px; background: #dbeafe; padding: 2px 8px; border-radius: 9999px;">Bayar di Tempat</span>
+    </div>
+    <div style="background: white; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+        <span style="font-size: 1.8rem; font-weight: 700; color: #4f46e5;"><?= $stats['terdaftar'] ?></span>
+        <span style="font-size: 0.85rem; color: #4f46e5; font-weight: 600; margin-top: 5px; background: #e0e7ff; padding: 2px 8px; border-radius: 9999px;">Gratis (Terdaftar)</span>
     </div>
 </div>
 
@@ -196,6 +202,8 @@ while ($stat_row = $stat_res->fetch_assoc()) {
                                 $badge_color = '#2563eb'; $badge_bg = '#dbeafe';
                             } elseif ($row['status_pembayaran'] == 'Ditolak') {
                                 $badge_color = '#dc2626'; $badge_bg = '#fee2e2';
+                            } elseif ($row['status_pembayaran'] == 'Terdaftar') {
+                                $badge_color = '#4f46e5'; $badge_bg = '#e0e7ff';
                             }
                             ?>
                             
@@ -204,6 +212,7 @@ while ($stat_row = $stat_res->fetch_assoc()) {
                                 <option value="Lunas" style="color: #16a34a; background: white;" <?= $row['status_pembayaran'] == 'Lunas' ? 'selected' : '' ?>>Lunas</option>
                                 <option value="Bayar di Tempat" style="color: #2563eb; background: white;" <?= $row['status_pembayaran'] == 'Bayar di Tempat' ? 'selected' : '' ?>>Bayar di Tempat</option>
                                 <option value="Ditolak" style="color: #dc2626; background: white;" <?= $row['status_pembayaran'] == 'Ditolak' ? 'selected' : '' ?>>Ditolak</option>
+                                <option value="Terdaftar" style="color: #4f46e5; background: white;" <?= $row['status_pembayaran'] == 'Terdaftar' ? 'selected' : '' ?>>Terdaftar (Gratis)</option>
                             </select>
                         </form>
                     </td>

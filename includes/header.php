@@ -59,12 +59,12 @@ $is_logged_in = isset($_SESSION['user_id']) || isset($_SESSION['admin_id']);
                 <li><a href="sorotan.php" class="<?= ($current_page == 'sorotan.php') ? 'active' : '' ?>">Sorotan</a></li>
                 <li><a href="renungan.php" class="<?= ($current_page == 'renungan.php') ? 'active' : '' ?>">Renungan</a></li>
                 <li class="dropdown">
-                    <a href="info.php" class="<?= ($current_page == 'info.php') ? 'active' : '' ?> dropdown-toggle">
-                        Info <i class="fa-solid fa-chevron-down" style="font-size: 0.8rem; margin-left: 4px;"></i>
+                    <a href="kegiatan.php" class="<?= ($current_page == 'kegiatan.php' || $current_page == 'warta.php') ? 'active' : '' ?> dropdown-toggle">
+                        Kegiatan <i class="fa-solid fa-chevron-down" style="font-size: 0.8rem; margin-left: 4px;"></i>
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a href="info.php#kegiatan">Kegiatan</a></li>
-                        <li><a href="info.php#warta">Warta</a></li>
+                        <li><a href="kegiatan.php">Jadwal Kegiatan</a></li>
+                        <li><a href="warta.php">Warta</a></li>
                     </ul>
                 </li>
                 <li><a href="profil.php" class="<?= ($current_page == 'profil.php') ? 'active' : '' ?>">Profil Saya</a></li>
@@ -117,9 +117,9 @@ $is_logged_in = isset($_SESSION['user_id']) || isset($_SESSION['admin_id']);
         <?php if ($is_logged_in): ?>
             <li><a href="sorotan.php">Sorotan</a></li>
             <li><a href="renungan.php">Renungan</a></li>
-            <li><a href="info.php">Info</a></li>
-            <li style="padding-left: 20px; margin-top: -10px; margin-bottom: -5px;"><a href="info.php#kegiatan" style="font-size: 1.1rem; font-weight: 500; color: var(--text-muted);"><i class="fa-solid fa-chevron-right" style="font-size: 0.8rem; margin-right: 6px; color: var(--primary-light);"></i> Kegiatan</a></li>
-            <li style="padding-left: 20px; margin-top: -10px; margin-bottom: -5px;"><a href="info.php#warta" style="font-size: 1.1rem; font-weight: 500; color: var(--text-muted);"><i class="fa-solid fa-chevron-right" style="font-size: 0.8rem; margin-right: 6px; color: var(--primary-light);"></i> Warta</a></li>
+            <li><a href="kegiatan.php">Kegiatan</a></li>
+            <li style="padding-left: 20px; margin-top: -10px; margin-bottom: -5px;"><a href="kegiatan.php" style="font-size: 1.1rem; font-weight: 500; color: var(--text-muted);"><i class="fa-solid fa-chevron-right" style="font-size: 0.8rem; margin-right: 6px; color: var(--primary-light);"></i> Jadwal Kegiatan</a></li>
+            <li style="padding-left: 20px; margin-top: -10px; margin-bottom: -5px;"><a href="warta.php" style="font-size: 1.1rem; font-weight: 500; color: var(--text-muted);"><i class="fa-solid fa-chevron-right" style="font-size: 0.8rem; margin-right: 6px; color: var(--primary-light);"></i> Warta</a></li>
             <li><a href="profil.php">Profil Saya</a></li>
         <?php endif; ?>
         <li style="margin-top: 20px; display: flex; flex-direction: column; gap: 12px;">
